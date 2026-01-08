@@ -1,0 +1,42 @@
+name: Terraform PR
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.9.0  # Match your version
+    
+    - name: Terraform Init
+      run: terraform init
+      
+    - name: Terraform Format
+      run: terraform fmt -check
+    
+    - name: Terraform Validate
+      run: terraform validate
+    
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan -no-color -input=false
+      
+    - uses: actions/github-script@v7
+      with:
+        script: |
+          const output = `#### Terraform Plan 📖\n${steps.plan.outputs.stdout}`;
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.name,
+            body: output
+          });
