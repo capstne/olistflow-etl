@@ -51,16 +51,20 @@ jobs:
 
     - name: Terraform Plan
       id: plan
-      run: terraform plan -no-color -input=false
+      run: terraform plan -no-color -detailed-exitcode -out=tfplan
       working-directory: ./infra
       
-    - uses: actions/github-script@v7
+    - name: Post Plan Comment
+      uses: actions/github-script@v7
+      if: always()  # Run even if plan fails
       with:
         script: |
-          const output = `#### Terraform Plan 📖\n${steps.plan.outputs.stdout}`;
+          const planOutput = steps.plan.outputs.stdout || steps.plan.outputs.stderr || 'Plan failed - check logs';
+          const output = `#### Terraform Plan 📖\n\`\`\`tf\n${planOutput}\n\`\`\``;
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.name,
             body: output
           });
+

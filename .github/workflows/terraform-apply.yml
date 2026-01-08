@@ -19,7 +19,7 @@ jobs:
 
     - uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: arn:aws:iam::916740064153:role/olistflow-github-role
+        role-to-assume: arn:aws:iam::916740064153:role/OlistflowGithubRole
         aws-region: us-east-1 
         
     - name: Terraform Init
