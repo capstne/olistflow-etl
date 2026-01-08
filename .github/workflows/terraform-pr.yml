@@ -20,9 +20,6 @@ jobs:
 
     - name: Terraform Version
       run: terraform version
-      
-    # - name: Debug AWS Identity
-    #   run: aws sts get-caller-identity
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -55,19 +52,13 @@ jobs:
       run: terraform plan -no-color -input=false -detailed-exitcode
       working-directory: ./infra
       
-    - name: Post Plan Comment
-      if: always()
-      uses: actions/github-script@v7
+    - uses: actions/github-script@v7
+      if: steps.plan.conclusion == 'success'
       with:
         script: |
-          let planOutput = 'No plan output (check logs for errors)';
-          if (steps.plan.outputs.stdout) {
-            planOutput = steps.plan.outputs.stdout;
-          } else if (steps.plan.outputs.stderr) {
-            planOutput = steps.plan.outputs.stderr;
-          }
-          const output = `#### Terraform Plan 📖\n\`\`\`\n${planOutput}\n\`\`\``;
-          await github.rest.issues.createComment({
+          const planOutput = `${{ steps.plan.outputs.stdout }}`;
+          const output = `#### Terraform Plan 📖\n\`\`\`hcl\n${planOutput}\n\`\`\``;
+          github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.name,
