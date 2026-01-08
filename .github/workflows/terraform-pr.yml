@@ -19,16 +19,20 @@ jobs:
     
     - name: Terraform Init
       run: terraform init
-      
+      working-directory: ./infra
+
     - name: Terraform Format
       run: terraform fmt -check
-    
+      working-directory: ./infra
+
     - name: Terraform Validate
       run: terraform validate
-    
+      working-directory: ./infra
+
     - name: Terraform Plan
       id: plan
       run: terraform plan -no-color -input=false
+      working-directory: ./infra
       
     - uses: actions/github-script@v7
       with:
