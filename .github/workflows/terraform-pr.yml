@@ -16,9 +16,22 @@ jobs:
     - uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: 1.5.0
-    
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::YOUR-ACCT:role/olistflow-github-role
+        aws-region: us-east-1
+
+    - name: Fix OIDC for Terraform Backend
+      run: |
+        echo "AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity-token" >> $GITHUB_ENV
+        echo $AWS_WEB_IDENTITY_TOKEN_FILE | cat > $(pwd)/web-identity-token  # Pipe token
+      env:
+        AWS_WEB_IDENTITY_TOKEN_FILE: ${{ env.AWS_WEB_IDENTITY_TOKEN_FILE }}
+
     - name: Terraform Init
-      run: terraform init
+      run: terraform init -input=false
       working-directory: ./infra
 
     - name: Terraform Format
