@@ -21,8 +21,8 @@ jobs:
     - name: Terraform Version
       run: terraform version
       
-    - name: Debug AWS Identity
-      run: aws sts get-caller-identity
+    # - name: Debug AWS Identity
+    #   run: aws sts get-caller-identity
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
