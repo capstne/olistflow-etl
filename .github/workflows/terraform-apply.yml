@@ -1,0 +1,30 @@
+name: Terraform Apply
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  id-token: write  # For OIDC
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: hashicorp/setup-terraform@v3
+    
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::YOUR-ACCOUNT:role/olistflow-github-role
+        aws-region: us-east-1  # Your region
+        
+    - name: Terraform Init
+      run: terraform init
+      
+    - name: Terraform Plan
+      run: terraform plan -no-color
+      
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
