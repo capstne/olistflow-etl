@@ -62,6 +62,23 @@ data "aws_iam_policy_document" "glue_policy" {
     ]
     resources = ["*"]
   }
+
+  statement {
+    sid = "GlueConnection"
+    actions = [
+      "glue:GetConnection",
+      "glue:GetConnections"
+    ]
+    resources = [aws_glue_connection.rds.arn]
+  }
+
+  statement {
+    sid = "SecretsManager"
+    actions = [
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_role_policy" "glue_inline" {
