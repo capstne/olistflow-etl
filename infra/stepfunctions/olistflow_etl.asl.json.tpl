@@ -12,7 +12,7 @@
     },
     "WaitForCrawler": {
       "Type": "Wait",
-      "Seconds": 15,
+      "Seconds": 60,
       "Next": "GetCrawler"
     },
     "GetCrawler": {
