@@ -9,3 +9,15 @@ output "curated_bucket" {
 output "artifacts_bucket" {
   value = aws_s3_bucket.artifacts.bucket
 }
+
+output "glue_raw_db" {
+  value = aws_glue_catalog_database.raw.name
+}
+
+output "glue_curated_db" {
+  value = aws_glue_catalog_database.curated.name
+}
+
+output "state_machine_arn" {
+  value = aws_sfn_state_machine.etl.arn
+}
