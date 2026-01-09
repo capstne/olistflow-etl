@@ -1,3 +1,5 @@
+# creates S3 buckets for raw, curated and artifacts data which versioning and server-side encryption enabled
+
 resource "aws_s3_bucket" "raw" {
   bucket        = "${local.name}-raw"
   force_destroy = true
@@ -16,7 +18,6 @@ resource "aws_s3_bucket" "artifacts" {
   tags          = local.tags
 }
 
-# enable versioning and server-side encryption for all buckets
 resource "aws_s3_bucket_versioning" "raw" {
   bucket = aws_s3_bucket.raw.id
   versioning_configuration { status = "Enabled" }
