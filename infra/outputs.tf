@@ -17,7 +17,3 @@ output "glue_raw_db" {
 output "glue_curated_db" {
   value = aws_glue_catalog_database.curated.name
 }
-
-output "state_machine_arn" {
-  value = aws_sfn_state_machine.etl.arn
-}
