@@ -1,3 +1,4 @@
+# creates jdbc glue connection to rds instance
 resource "aws_glue_connection" "rds" {
   name = "${local.name}-rds-jdbc"
 

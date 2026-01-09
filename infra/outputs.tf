@@ -18,6 +18,12 @@ output "glue_curated_db" {
   value = aws_glue_catalog_database.curated.name
 }
 
-output "state_machine_arn" {
-  value = aws_sfn_state_machine.etl.arn
+output "rds_password" {
+  value       = random_password.rds_password.result
+  description = "RDS password (rotate/delete after use)"
+  sensitive   = true
+}
+
+output "rds_endpoint" {
+  value = aws_db_instance.main.endpoint
 }

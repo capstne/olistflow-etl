@@ -1,3 +1,5 @@
+#  provisions IAM roles and policies for Glue and Step Functions
+
 data "aws_caller_identity" "current" {}
 data "aws_partition" "current" {}
 

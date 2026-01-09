@@ -1,3 +1,5 @@
+# creates VPC with public and private subnets, internet gateway, route tables and security group for RDS
+
 data "aws_availability_zones" "available" {
   state = "available"
 }
@@ -45,32 +47,6 @@ resource "aws_subnet" "private" {
   cidr_block        = "10.0.${count.index + 11}.0/24"
   availability_zone = data.aws_availability_zones.available.names[count.index]
   tags              = merge(local.tags, { Name = "${local.name}-private-${count.index + 1}" })
-}
-
-resource "aws_nat_gateway" "main" {
-  allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public[0].id
-  tags          = local.tags
-}
-
-resource "aws_eip" "nat" {
-  domain = "vpc"
-}
-
-resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.main.id
-  tags   = merge(local.tags, { Name = "${local.name}-private" })
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.main.id
-  }
-}
-
-resource "aws_route_table_association" "private" {
-  count          = 2
-  subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private.id
 }
 
 resource "aws_security_group" "rds" {
