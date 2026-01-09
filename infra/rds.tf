@@ -1,3 +1,5 @@
+# creates free tier RDS Postgres instance with random password
+
 resource "random_password" "rds_password" {
   length           = 16
   special          = true
