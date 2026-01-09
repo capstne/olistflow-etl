@@ -1,3 +1,5 @@
+# creates free tier RDS Postgres instance with random password
+
 resource "random_password" "rds_password" {
   length           = 16
   special          = true
@@ -26,15 +28,4 @@ resource "aws_db_subnet_group" "main" {
   name       = local.name
   subnet_ids = aws_subnet.private[*].id
   tags       = local.tags
-}
-
-# Output the password temporarily (rotate in prod).
-output "rds_password" {
-  value       = random_password.rds_password.result
-  description = "RDS password (rotate/delete after use)"
-  sensitive   = true
-}
-
-output "rds_endpoint" {
-  value = aws_db_instance.main.endpoint
 }

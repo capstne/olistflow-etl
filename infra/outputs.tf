@@ -17,3 +17,13 @@ output "glue_raw_db" {
 output "glue_curated_db" {
   value = aws_glue_catalog_database.curated.name
 }
+
+output "rds_password" {
+  value       = random_password.rds_password.result
+  description = "RDS password (rotate/delete after use)"
+  sensitive   = true
+}
+
+output "rds_endpoint" {
+  value = aws_db_instance.main.endpoint
+}

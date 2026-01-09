@@ -1,3 +1,4 @@
+# creates glue catalog databases, crawlers and jobs
 resource "aws_glue_catalog_database" "raw" {
   name = "${var.project}_raw"
   tags = local.tags
@@ -79,12 +80,6 @@ resource "aws_glue_job" "curated_to_rds" {
     "--CURATED_PREFIX"       = var.curated_prefix
     "--CURATED_DB"           = aws_glue_catalog_database.curated.name
     "--JDBC_CONNECTION_NAME" = aws_glue_connection.rds.name
-
-    # RDS parameters will be wired later (JDBC URL / secrets / connection).
-    "--RDS_JDBC_URL" = ""
-    "--RDS_USER"     = ""
-    "--RDS_PASSWORD" = ""
-
     "--enable-metrics"                   = ""
     "--enable-continuous-cloudwatch-log" = "true"
   }
