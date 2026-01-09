@@ -27,14 +27,3 @@ resource "aws_db_subnet_group" "main" {
   subnet_ids = aws_subnet.private[*].id
   tags       = local.tags
 }
-
-# Output the password temporarily (rotate in prod).
-output "rds_password" {
-  value       = random_password.rds_password.result
-  description = "RDS password (rotate/delete after use)"
-  sensitive   = true
-}
-
-output "rds_endpoint" {
-  value = aws_db_instance.main.endpoint
-}
