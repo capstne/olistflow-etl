@@ -47,6 +47,7 @@ data "aws_iam_policy_document" "glue_policy" {
       "glue:GetTables",
       "glue:GetPartition",
       "glue:GetPartitions",
+      "glue:CreateDatabase",
       "glue:CreateTable",
       "glue:UpdateTable",
       "glue:BatchCreatePartition",
