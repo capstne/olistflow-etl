@@ -66,14 +66,17 @@ raw_orders_df = raw_orders_df.withColumn(
     to_date(col("order_purchase_timestamp"))
 )
 
-# Curated orders (fact seed): join customers, items, payments, aggregate.
-curated_orders = raw_orders_df \
+# Curated orders (fact seed): join customers, items, products, payments, reviews, sellers, aggregate.
+temp_joined = raw_orders_df \
     .join(raw_customers_df, "customer_id", "left") \
     .join(raw_items_df, "order_id", "left") \
     .join(raw_products_df, "product_id", "left") \
     .join(raw_payments_df, "order_id", "left") \
-    .join(raw_reviews_df, "order_id", "left", "coalesce") \
-    .join(raw_sellers_df, raw_items_df["seller_id"] == raw_sellers_df["seller_id"], "left") \
+    .join(raw_reviews_df, "order_id", "left") \
+    .join(raw_sellers_df, col("seller_id") == raw_sellers_df["seller_id"], "left")
+
+# Minimal groupBy: order_id + order_date, pick first of each (validates joins work).
+curated_orders = temp_joined \
     .groupBy("order_id", "order_date") \
     .agg(
         first("customer_id").alias("customer_id"),
@@ -81,12 +84,12 @@ curated_orders = raw_orders_df \
         first("customer_zip_code_prefix").alias("customer_zip_code_prefix"),
         first("customer_city").alias("customer_city"),
         first("customer_state").alias("customer_state"),
-        sum("price").alias("total_price"),
-        sum("freight_value").alias("total_freight"),
-        sum("payment_installments").alias("installments"),
-        count("payment_sequential").alias("payment_count"),
+        first("price").alias("sample_price"),  # Test sum later
+        first("freight_value").alias("sample_freight"),
+        first("payment_installments").alias("sample_installments"),
+        first("payment_sequential").alias("sample_payment_seq"),
         first("order_status").alias("order_status"),
-        avg("review_score").alias("avg_review_score")
+        first("review_score").alias("sample_review_score")
     ) \
     .select(
         col("order_id"),
@@ -96,13 +99,14 @@ curated_orders = raw_orders_df \
         col("customer_zip_code_prefix").cast(IntegerType()),
         col("customer_city"),
         col("customer_state"),
-        col("total_price").cast(DoubleType()),
-        col("total_freight").cast(DoubleType()),
-        col("installments").cast(IntegerType()),
-        col("payment_count").cast(IntegerType()),
+        col("sample_price").cast(DoubleType()),
+        col("sample_freight").cast(DoubleType()),
+        col("sample_installments").cast(IntegerType()),
+        col("sample_payment_seq").cast(IntegerType()),
         col("order_status"),
-        col("avg_review_score").cast(FloatType())
+        col("sample_review_score").cast(FloatType())
     )
+
 
 # Write partitioned Parquet (order_date=YYYY-MM-DD).
 curated_orders.write \
