@@ -45,6 +45,5 @@ resource "aws_secretsmanager_secret_version" "bastion_keypair" {
   secret_string = jsonencode({
     private_key_pem = tls_private_key.bastion.private_key_pem
     public_key_ssh  = tls_private_key.bastion.public_key_openssh
-    private_key_pkcs8 = tls_private_key.bastion.private_key_pkcs8  # Optional for some tools
   })
 }
