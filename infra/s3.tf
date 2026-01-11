@@ -1,7 +1,7 @@
 # creates S3 buckets for raw, curated and artifacts data which versioning and server-side encryption enabled
 
 locals {
-  raw_files = fileset("${path.module}/data", "**")
+  raw_files = fileset("${path.root}/../data/olist", "**")
 }
 
 resource "aws_s3_bucket" "raw" {
@@ -62,8 +62,8 @@ resource "aws_s3_object" "add_raw_files" {
   for_each = local.raw_files
 
   bucket      = aws_s3_bucket.raw.id
-  key         = "data/${each.value}"
-  source      = "${path.module}/data/${each.value}"
-  source_hash = filemd5("${path.module}/data/${each.value}")
+  key         = "${var.raw_prefix}${each.value}"
+  source      = "${path.root}/../data/${var.raw_prefix}${each.value}" 
+  source_hash = filemd5("${path.root}/../data/${var.raw_prefix}${each.value}")
   tags        = local.tags
 }
