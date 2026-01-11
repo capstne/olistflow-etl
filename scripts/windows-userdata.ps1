@@ -1,7 +1,7 @@
 <powershell>
 # Run as System on startup
 $Admin = [adsi]("WinNT://./administrator,user")
-$Admin.SetPassword("${admin_password}")
+$Admin.SetPassword("$${admin_password}")
 $Admin.SetInfo()
 
 # Enable RDP
@@ -25,7 +25,7 @@ Start-Process -FilePath $installerPath -ArgumentList "/VERYSILENT /NORESTART /AL
 Remove-Item $installerPath -Force
 
 # After pgAdmin install in userdata...
-$pgConfigPath = "${env:ProgramFiles}\pgAdmin 4\v9\runtime\config_local.py"
+$pgConfigPath = "$${env:ProgramFiles}\pgAdmin 4\v9\runtime\config_local.py"
 $configContent = @"
 import os
 DATA_DIR = r'C:\\Users\\Public\\pgadmin4'
@@ -49,8 +49,8 @@ $configContent | Out-File -FilePath $pgConfigPath -Encoding UTF8
 # Create batch to auto-start pgAdmin server
 $batchContent = @"
 @echo off
-cd /d "${env:ProgramFiles}\pgAdmin 4\v9\bin"
+cd /d "$${env:ProgramFiles}\pgAdmin 4\v9\bin"
 pgAdmin4.exe
 "@
-$batchContent | Out-File -FilePath "${env:PUBLIC}\Desktop\Start pgAdmin Server.bat" -Encoding ASCII
+$batchContent | Out-File -FilePath "$${env:PUBLIC}\Desktop\Start pgAdmin Server.bat" -Encoding ASCII
 </powershell>
