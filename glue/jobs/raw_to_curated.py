@@ -1,3 +1,4 @@
+import awswrangler as wr
 import sys
 from awsglue.transforms import *
 from awsglue.utils import getResolvedOptions
@@ -66,6 +67,8 @@ raw_orders_df = raw_orders_df.withColumn(
     to_date(col("order_purchase_timestamp"))
 )
 
+raw_sellers_df = raw_sellers_df.withColumnRenamed("seller_id", "raw_seller_id")
+
 # Curated orders (fact seed): join customers, items, products, payments, reviews, sellers, aggregate.
 temp_joined = raw_orders_df \
     .join(raw_customers_df, "customer_id", "left") \
@@ -73,9 +76,7 @@ temp_joined = raw_orders_df \
     .join(raw_products_df, "product_id", "left") \
     .join(raw_payments_df, "order_id", "left") \
     .join(raw_reviews_df, "order_id", "left") \
-    .join(raw_sellers_df, col("seller_id") == raw_sellers_df["seller_id"], "left") \
-    .drop(raw_sellers_df["seller_id"])  # Drop duplicate seller_id
-
+    .join(raw_sellers_df, col("seller_id") == raw_sellers_df["raw_seller_id"], "left") 
 
 # Minimal groupBy: order_id + order_date, pick first of each (validates joins work).
 curated_orders = temp_joined \
@@ -109,11 +110,36 @@ curated_orders = temp_joined \
         col("sample_review_score").cast(FloatType())
     )
 
+wr.catalog.create_database(args['CURATED_DB'], exist_ok=True)
 
-# Write partitioned Parquet (order_date=YYYY-MM-DD).
-curated_orders.write \
-    .partitionBy("order_date") \
-    .mode("overwrite") \
-    .parquet(f"s3://{args['CURATED_BUCKET']}/{args['CURATED_PREFIX']}orders/")
+# Define schema manually from printSchema() output
+columns_types = {
+    "order_id": "string",
+    "customer_id": "string",
+    "customer_unique_id": "string",
+    "customer_zip_code_prefix": "int",
+    "customer_city": "string",
+    "customer_state": "string",
+    "sample_price": "double",
+    "sample_freight": "double",
+    "sample_installments": "int",
+    "sample_payment_seq": "int",
+    "order_status": "string",
+    "sample_review_score": "float"
+}
 
+# # infer columns_types from 1st row
+# sample_pd = curated_orders.limit(1).toPandas()  # Small sample for inference
+# columns_types = wr.catalog.extract_athena_types(sample_pd)[0] 
+
+partitions_types = {"order_date": "date"}
+
+wr.catalog.create_parquet_table(
+    database=args['CURATED_DB'],
+    table="orders",
+    path=f"s3://{args['CURATED_BUCKET']}/{args['CURATED_PREFIX']}orders/",
+    columns_types=columns_types,
+    partitions_types=partitions_types,
+    mode="overwrite"
+)
 job.commit()

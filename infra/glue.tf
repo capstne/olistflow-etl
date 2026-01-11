@@ -66,6 +66,7 @@ resource "aws_glue_job" "raw_to_curated" {
 
     "--enable-metrics"                   = ""
     "--enable-continuous-cloudwatch-log" = "true"
+    "--additional-python-modules" = "awswrangler==3.14.0,numpy<2,pyarrow==14"
   }
 }
 
