@@ -13,7 +13,7 @@ resource "aws_glue_crawler" "raw" {
   name          = replace("${local.name}-raw-crawler", "-", "_")
   role          = aws_iam_role.glue_role.arn
   database_name = aws_glue_catalog_database.raw.name
-  classifiers    = [aws_glue_classifier.csv_olist.id]
+  classifiers   = [aws_glue_classifier.csv_olist.id]
   tags          = local.tags
 
   s3_target {
@@ -30,9 +30,9 @@ resource "aws_glue_classifier" "csv_olist" {
   name = replace("${local.name}-csv-classifier", "-", "_")
 
   csv_classifier {
-    delimiter        = ","
-    quote_symbol     = "\""
-    contains_header  = "PRESENT"
+    delimiter              = ","
+    quote_symbol           = "\""
+    contains_header        = "PRESENT"
     disable_value_trimming = false
   }
 }
@@ -45,7 +45,7 @@ resource "aws_glue_job" "raw_to_curated" {
   glue_version      = "4.0"
   number_of_workers = 2
   worker_type       = "G.1X"
-  timeout           = 30  
+  timeout           = 30
 
   command {
     name            = "glueetl"
@@ -66,7 +66,7 @@ resource "aws_glue_job" "raw_to_curated" {
 
     "--enable-metrics"                   = ""
     "--enable-continuous-cloudwatch-log" = "true"
-    "--additional-python-modules" = "awswrangler==3.14.0,numpy<2,pyarrow==14"
+    "--additional-python-modules"        = "awswrangler==3.14.0,numpy<2,pyarrow==14"
   }
 }
 

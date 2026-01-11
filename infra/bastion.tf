@@ -4,7 +4,7 @@
 # Windows uses RDP (port 3389) from your Windows laptop, NOT SSH. Enable RDP via user data.
 
 data "aws_secretsmanager_secret_version" "ec2_password" {
-  secret_id = aws_secretsmanager_secret.ec2_password.name
+  secret_id  = aws_secretsmanager_secret.ec2_password.name
   depends_on = [aws_secretsmanager_secret_version.ec2_password_version]
 }
 
@@ -13,10 +13,10 @@ resource "aws_security_group" "bastion" {
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    from_port   = 3389  # RDP
+    from_port   = 3389 # RDP
     to_port     = 3389
     protocol    = "tcp"
-    cidr_blocks = ["99.241.135.123/32"]  # if not Temi, replace with your laptop's public IP
+    cidr_blocks = ["99.241.135.123/32"] # if not Temi, replace with your laptop's public IP
   }
 
   egress {
@@ -29,7 +29,7 @@ resource "aws_security_group" "bastion" {
 
 resource "aws_security_group_rule" "rds_access" {
   type                     = "ingress"
-  from_port                = 5432  # PostgreSQL
+  from_port                = 5432 # PostgreSQL
   to_port                  = 5432
   protocol                 = "tcp"
   security_group_id        = aws_security_group.rds.id
@@ -48,18 +48,18 @@ resource "aws_key_pair" "bastion" {
 
 resource "aws_instance" "bastion" {
   ami                         = data.aws_ami.windows.id
-  instance_type               = "t3.medium" 
+  instance_type               = "t3.medium"
   subnet_id                   = aws_subnet.public[0].id
   vpc_security_group_ids      = [aws_security_group.bastion.id]
   associate_public_ip_address = true
   key_name                    = aws_key_pair.bastion.key_name
 
   root_block_device {
-    volume_size = 30  # Windows minimum
+    volume_size = 30 # Windows minimum
     volume_type = "gp3"
   }
 
-  user_data = base64encode(templatefile("${path.root}/../../scripts/windows-userdata.ps1", {
+  user_data = base64encode(templatefile("../scripts/windows-userdata.ps1", {
     admin_password = data.aws_secretsmanager_secret_version.ec2_password.secret_string
   }))
 
@@ -68,7 +68,7 @@ resource "aws_instance" "bastion" {
   }
 
   lifecycle {
-    ignore_changes = [ami]  # Windows AMIs update often
+    ignore_changes = [ami] # Windows AMIs update often
   }
 }
 
@@ -78,7 +78,7 @@ data "aws_ami" "windows" {
 
   filter {
     name   = "name"
-    values = ["Windows_Server-2022-English-Full-Base-*"]  # ARM for t4g.nano
+    values = ["Windows_Server-2022-English-Full-Base-*"] # ARM for t4g.nano
   }
 
   filter {

@@ -1,6 +1,6 @@
 # creates free tier RDS Postgres instance with random password from Secrets Manager
 data "aws_secretsmanager_secret_version" "rds_password" {
-  secret_id = aws_secretsmanager_secret.rds_password.name
+  secret_id  = aws_secretsmanager_secret.rds_password.name
   depends_on = [aws_secretsmanager_secret_version.rds_password_version]
 }
 

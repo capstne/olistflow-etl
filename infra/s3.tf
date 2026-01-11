@@ -64,7 +64,7 @@ resource "aws_s3_object" "add_raw_files" {
 
   bucket      = aws_s3_bucket.raw.id
   key         = "${var.raw_prefix}${each.value}"
-  source      = "${path.root}/../data/${var.raw_prefix}${each.value}" 
+  source      = "${path.root}/../data/${var.raw_prefix}${each.value}"
   source_hash = filemd5("${path.root}/../data/${var.raw_prefix}${each.value}")
   tags        = local.tags
 }
@@ -74,7 +74,7 @@ resource "aws_s3_object" "add_glue_jobs_files" {
 
   bucket      = aws_s3_bucket.artifacts.id
   key         = "${var.glue_jobs_prefix}${each.value}"
-  source      = "${path.root}/../${var.glue_jobs_prefix}${each.value}" 
+  source      = "${path.root}/../${var.glue_jobs_prefix}${each.value}"
   source_hash = filemd5("${path.root}/../${var.glue_jobs_prefix}${each.value}")
   tags        = local.tags
 }
