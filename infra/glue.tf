@@ -38,7 +38,7 @@ resource "aws_glue_job" "raw_to_curated" {
   command {
     name            = "glueetl"
     python_version  = "3"
-    script_location = "s3://${aws_s3_bucket.artifacts.bucket}/${var.glue_script_raw_to_curated_key}"
+    script_location = "s3://${aws_s3_bucket.artifacts.bucket}/${var.glue_jobs_prefix}${var.glue_script_raw_to_curated_key}"
   }
 
   default_arguments = {
@@ -70,7 +70,7 @@ resource "aws_glue_job" "curated_to_rds" {
   command {
     name            = "glueetl"
     python_version  = "3"
-    script_location = "s3://${aws_s3_bucket.artifacts.bucket}/${var.glue_script_curated_to_rds_key}"
+    script_location = "s3://${aws_s3_bucket.artifacts.bucket}/${var.glue_jobs_prefix}${var.glue_script_curated_to_rds_key}"
   }
 
   default_arguments = {
