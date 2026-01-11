@@ -1,6 +1,6 @@
 # creates jdbc glue connection to rds instance
 resource "aws_glue_connection" "rds" {
-  name = "${local.name}-rds-jdbc"
+  name = replace("${local.name}-rds-jdbc", "-", "_")
 
   connection_properties = {
     JDBC_CONNECTION_URL = "jdbc:postgresql://${aws_db_instance.main.endpoint}/postgres"
