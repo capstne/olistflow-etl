@@ -8,7 +8,6 @@ resource "random_password" "rds_password" {
 resource "aws_secretsmanager_secret" "rds_password" {
   name                    = "${local.name}-rds-master-password"
   description             = "Master password for olist-etl RDS instance"
-  recovery_window_in_days = 7 
 }
 
 resource "aws_secretsmanager_secret_version" "rds_password_version" {
