@@ -72,7 +72,7 @@ resource "aws_s3_object" "add_raw_files" {
 resource "aws_s3_object" "add_glue_jobs_files" {
   for_each = local.glue_jobs_files
 
-  bucket      = aws_s3_bucket.raw.id
+  bucket      = aws_s3_bucket.artifacts.id
   key         = "${var.glue_jobs_prefix}${each.value}"
   source      = "${path.root}/../${var.glue_jobs_prefix}${each.value}" 
   source_hash = filemd5("${path.root}/../${var.glue_jobs_prefix}${each.value}")
