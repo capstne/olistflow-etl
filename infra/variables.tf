@@ -18,14 +18,19 @@ variable "tags" {
   default = {}
 }
 
+variable "glue_jobs_prefix" {
+  type    = string
+  default = "glue/jobs/"
+}
+
 variable "glue_script_raw_to_curated_key" {
   type    = string
-  default = "glue/jobs/raw_to_curated.py"
+  default = "raw_to_curated.py"
 }
 
 variable "glue_script_curated_to_rds_key" {
   type    = string
-  default = "glue/jobs/curated_to_rds.py"
+  default = "curated_to_rds.py"
 }
 
 variable "raw_prefix" {
