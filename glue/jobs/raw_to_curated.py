@@ -72,8 +72,8 @@ curated_orders = raw_orders_df \
     .join(raw_items_df, "order_id", "left") \
     .join(raw_products_df, "product_id", "left") \
     .join(raw_payments_df, "order_id", "left") \
-    .join(raw_reviews_df, "order_id", "left", "coalesce") \
-    .join(raw_sellers_df, raw_items_df["seller_id"] == raw_sellers_df["seller_id"], "left") \
+    .join(raw_reviews_df, "order_id", "left") \
+    .join(raw_sellers_df, col("seller_id") == raw_sellers_df["seller_id"], "left") \
     .groupBy("order_id", "order_date") \
     .agg(
         first("customer_id").alias("customer_id"),
@@ -86,7 +86,7 @@ curated_orders = raw_orders_df \
         sum("payment_installments").alias("installments"),
         count("payment_sequential").alias("payment_count"),
         first("order_status").alias("order_status"),
-        avg("review_score").alias("avg_review_score")
+        coalesce(avg("review_score"), lit(0.0)).alias("avg_review_score")
     ) \
     .select(
         col("order_id"),
