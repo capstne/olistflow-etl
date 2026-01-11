@@ -13,6 +13,7 @@ resource "aws_glue_crawler" "raw" {
   name          = replace("${local.name}-raw-crawler", "-", "_")
   role          = aws_iam_role.glue_role.arn
   database_name = aws_glue_catalog_database.raw.name
+  classifiers    = [aws_glue_classifier.csv_olist.id]
   tags          = local.tags
 
   s3_target {
@@ -22,6 +23,17 @@ resource "aws_glue_crawler" "raw" {
   schema_change_policy {
     delete_behavior = "LOG"
     update_behavior = "UPDATE_IN_DATABASE"
+  }
+}
+
+resource "aws_glue_classifier" "csv_olist" {
+  name = replace("${local.name}-csv-classifier", "-", "_")
+
+  csv_classifier {
+    delimiter        = ","
+    quote_symbol     = "\""
+    contains_header  = "PRESENT"
+    disable_value_trimming = false
   }
 }
 
