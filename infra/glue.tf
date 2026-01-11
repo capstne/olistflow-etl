@@ -1,16 +1,16 @@
 # creates glue catalog databases, crawlers and jobs
 resource "aws_glue_catalog_database" "raw" {
-  name = "${var.project}_raw"
+  name = replace("${var.project}_raw", "-", "_")
   tags = local.tags
 }
 
 resource "aws_glue_catalog_database" "curated" {
-  name = "${var.project}_curated"
+  name = replace("${var.project}_curated", "-", "_")
   tags = local.tags
 }
 
 resource "aws_glue_crawler" "raw" {
-  name          = "${local.name}-raw-crawler"
+  name          = replace("${local.name}-raw-crawler", "-", "_")
   role          = aws_iam_role.glue_role.arn
   database_name = aws_glue_catalog_database.raw.name
   tags          = local.tags
@@ -26,14 +26,14 @@ resource "aws_glue_crawler" "raw" {
 }
 
 resource "aws_glue_job" "raw_to_curated" {
-  name     = "${local.name}-raw-to-curated"
+  name     = replace("${local.name}-raw-to-curated", "-", "_")
   role_arn = aws_iam_role.glue_role.arn
   tags     = local.tags
 
   glue_version      = "4.0"
   number_of_workers = 2
   worker_type       = "G.1X"
-  timeout           = 30
+  timeout           = 30  
 
   command {
     name            = "glueetl"
@@ -58,7 +58,7 @@ resource "aws_glue_job" "raw_to_curated" {
 }
 
 resource "aws_glue_job" "curated_to_rds" {
-  name     = "${local.name}-curated-to-rds"
+  name     = replace("${local.name}-curated-to-rds", "-", "_")
   role_arn = aws_iam_role.glue_role.arn
   tags     = local.tags
 

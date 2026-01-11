@@ -21,13 +21,13 @@ job = Job(glueContext)
 job.init(args['JOB_NAME'], args)
 
 # Load raw tables from Glue Catalog (after crawler).
-raw_orders = spark.table(f"`{args['RAW_DB']}`.olist_orders_dataset")
-raw_customers = spark.table(f"`{args['RAW_DB']}`.olist_customers_dataset")
-raw_items = spark.table(f"`{args['RAW_DB']}`.olist_order_items_dataset")
-raw_products = spark.table(f"`{args['RAW_DB']}`.olist_products_dataset")
-raw_payments = spark.table(f"`{args['RAW_DB']}`.olist_order_payments_dataset")
-raw_reviews = spark.table(f"`{args['RAW_DB']}`.olist_order_reviews_dataset")
-raw_sellers = spark.table(f"`{args['RAW_DB']}`.olist_sellers_dataset")
+raw_orders = spark.table(f"{args['RAW_DB']}.olist_orders_dataset")
+raw_customers = spark.table(f"{args['RAW_DB']}.olist_customers_dataset")
+raw_items = spark.table(f"{args['RAW_DB']}.olist_order_items_dataset")
+raw_products = spark.table(f"{args['RAW_DB']}.olist_products_dataset")
+raw_payments = spark.table(f"{args['RAW_DB']}.olist_order_payments_dataset")
+raw_reviews = spark.table(f"{args['RAW_DB']}.olist_order_reviews_dataset")
+raw_sellers = spark.table(f"{args['RAW_DB']}.olist_sellers_dataset")
 
 # Add order_date partition column (parse from order_purchase_timestamp).
 raw_orders = raw_orders.withColumn(
