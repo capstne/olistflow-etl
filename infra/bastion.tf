@@ -78,7 +78,7 @@ data "aws_ami" "windows" {
 
   filter {
     name   = "name"
-    values = ["Windows_Server-2022-English-Full-Base-*-arm64"]  # ARM for t4g.nano
+    values = ["Windows_Server-2022-English-Full-Base-*"]  # ARM for t4g.nano
   }
 
   filter {
