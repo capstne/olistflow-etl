@@ -20,37 +20,60 @@ spark = glueContext.spark_session
 job = Job(glueContext)
 job.init(args['JOB_NAME'], args)
 
-# ************ Debug: show current DBs and tables
-
+# Debug: SHOW DATABASES will only list 'default' - normal for raw Spark SQL
 print(spark.catalog.currentDatabase())
 spark.sql("SHOW DATABASES").show()
-spark.sql("USE olistflow_etl_raw").show()  # or lowercase
-spark.sql("SHOW TABLES IN olistflow_etl_raw").show()
 
+# Load via GlueContext (bypasses Spark catalog issues)
+raw_orders_df = glueContext.create_dynamic_frame.from_catalog(
+    database=args['RAW_DB'],
+    table_name="olist_orders_dataset_csv"
+).toDF()
 
-# Load raw tables from Glue Catalog (after crawler).
-raw_orders = spark.table(f"{args['RAW_DB']}.olist_orders_dataset_csv")
-raw_customers = spark.table(f"{args['RAW_DB']}.olist_customers_dataset_csv")
-raw_items = spark.table(f"{args['RAW_DB']}.olist_order_items_dataset_csv")
-raw_products = spark.table(f"{args['RAW_DB']}.olist_products_dataset_csv")
-raw_payments = spark.table(f"{args['RAW_DB']}.olist_order_payments_dataset_csv")
-raw_reviews = spark.table(f"{args['RAW_DB']}.olist_order_reviews_dataset_csv")
-raw_sellers = spark.table(f"{args['RAW_DB']}.olist_sellers_dataset_csv")
+raw_customers_df = glueContext.create_dynamic_frame.from_catalog(
+    database=args['RAW_DB'],
+    table_name="olist_customers_dataset_csv"
+).toDF()
+
+raw_items_df = glueContext.create_dynamic_frame.from_catalog(
+    database=args['RAW_DB'],
+    table_name="olist_order_items_dataset_csv"
+).toDF()
+
+raw_products_df = glueContext.create_dynamic_frame.from_catalog(
+    database=args['RAW_DB'],
+    table_name="olist_products_dataset_csv"
+).toDF()
+
+raw_payments_df = glueContext.create_dynamic_frame.from_catalog(
+    database=args['RAW_DB'],
+    table_name="olist_order_payments_dataset_csv"
+).toDF()
+
+raw_reviews_df = glueContext.create_dynamic_frame.from_catalog(
+    database=args['RAW_DB'],
+    table_name="olist_order_reviews_dataset_csv"
+).toDF()
+
+raw_sellers_df = glueContext.create_dynamic_frame.from_catalog(
+    database=args['RAW_DB'],
+    table_name="olist_sellers_dataset_csv"
+).toDF()
 
 # Add order_date partition column (parse from order_purchase_timestamp).
-raw_orders = raw_orders.withColumn(
+raw_orders_df = raw_orders_df.withColumn(
     "order_date",
     to_date(col("order_purchase_timestamp"))
 )
 
 # Curated orders (fact seed): join customers, items, payments, aggregate.
-curated_orders = raw_orders \
-    .join(raw_customers, "customer_id", "left") \
-    .join(raw_items, "order_id", "left") \
-    .join(raw_products, "product_id", "left") \
-    .join(raw_payments, "order_id", "left") \
-    .join(raw_reviews, "order_id", "left", "coalesce") \
-    .join(raw_sellers, raw_items.seller_id == raw_sellers.seller_id, "left") \
+curated_orders = raw_orders_df \
+    .join(raw_customers_df, "customer_id", "left") \
+    .join(raw_items_df, "order_id", "left") \
+    .join(raw_products_df, "product_id", "left") \
+    .join(raw_payments_df, "order_id", "left") \
+    .join(raw_reviews_df, "order_id", "left", "coalesce") \
+    .join(raw_sellers_df, raw_items_df["seller_id"] == raw_sellers_df["seller_id"], "left") \
     .groupBy("order_id", "order_date") \
     .agg(
         first("customer_id").alias("customer_id"),
@@ -86,13 +109,5 @@ curated_orders.write \
     .partitionBy("order_date") \
     .mode("overwrite") \
     .parquet(f"s3://{args['CURATED_BUCKET']}/{args['CURATED_PREFIX']}orders/")
-
-# Register as Glue table (manual, or use crawler).
-spark.sql(f"""
-    CREATE TABLE IF NOT EXISTS `{args['CURATED_DB']}`.`curated_orders`
-    USING PARQUET
-    PARTITIONED BY (order_date date)
-    LOCATION 's3://{args['CURATED_BUCKET']}/{args['CURATED_PREFIX']}orders/'
-""")
 
 job.commit()
