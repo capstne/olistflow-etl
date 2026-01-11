@@ -1,7 +1,4 @@
-# bastion.tf - Minimal Windows Bastion EC2 for RDS access (t4g.nano ARM ~$2.50/month On-Demand)
-# Assumes you have VPC "olistflow-etl-dev" and a public subnet (use data sources).
-# Create SSH keypair first: aws ec2 create-key-pair --key-name my-bastion-key --query 'KeyMaterial' > bastion.pem
-# Windows uses RDP (port 3389) from your Windows laptop, NOT SSH. Enable RDP via user data.
+# bastion.tf - Minimal Windows Bastion EC2 for RDS access 
 
 data "aws_secretsmanager_secret_version" "ec2_password" {
   secret_id  = aws_secretsmanager_secret.ec2_password.name
