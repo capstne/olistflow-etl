@@ -7,8 +7,9 @@ resource "random_password" "rds_password" {
 }
 
 resource "aws_secretsmanager_secret" "rds_password" {
-  name        = "${local.name}-rds-master-password"
-  description = "Master password for olist-etl RDS instance"
+  name                    = "${local.name}-rds-master-password"
+  description             = "Master password for olist-etl RDS instance"
+  recovery_window_in_days = 0
 }
 
 resource "aws_secretsmanager_secret_version" "rds_password_version" {
@@ -23,8 +24,10 @@ resource "random_password" "ec2_admin_password" {
 }
 
 resource "aws_secretsmanager_secret" "ec2_password" {
-  name        = "${local.name}-ec2-master-password"
-  description = "Master password for olist-etl EC2 instance"
+  name                    = "${local.name}-ec2-master-password"
+  description             = "Master password for olist-etl EC2 instance"
+  recovery_window_in_days = 0
+
 }
 
 resource "aws_secretsmanager_secret_version" "ec2_password_version" {
@@ -38,6 +41,8 @@ resource "aws_secretsmanager_secret" "bastion_keypair" {
   tags = {
     Name = "bastion-keypair"
   }
+  recovery_window_in_days = 0
+
 }
 
 resource "aws_secretsmanager_secret_version" "bastion_keypair" {
