@@ -1,9 +1,7 @@
-# creates free tier RDS Postgres instance with random password
-
-resource "random_password" "rds_password" {
-  length           = 16
-  special          = true
-  override_special = "!#$%&*()-_=+[]{}<>:?" # note: no @, no space, no slash, no quote
+# creates free tier RDS Postgres instance with random password from Secrets Manager
+data "aws_secretsmanager_secret_version" "rds_password" {
+  secret_id = aws_secretsmanager_secret.rds_password.name
+  depends_on = [aws_secretsmanager_secret_version.rds_password_version]
 }
 
 resource "aws_db_instance" "main" {
@@ -17,7 +15,7 @@ resource "aws_db_instance" "main" {
   db_subnet_group_name    = aws_db_subnet_group.main.name
   vpc_security_group_ids  = [aws_security_group.rds.id]
   username                = "postgres"
-  password                = random_password.rds_password.result
+  password                = data.aws_secretsmanager_secret_version.rds_password.secret_string
   skip_final_snapshot     = true
   backup_retention_period = 1
   multi_az                = false
