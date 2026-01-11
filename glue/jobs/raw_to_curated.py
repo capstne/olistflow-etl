@@ -73,7 +73,9 @@ temp_joined = raw_orders_df \
     .join(raw_products_df, "product_id", "left") \
     .join(raw_payments_df, "order_id", "left") \
     .join(raw_reviews_df, "order_id", "left") \
-    .join(raw_sellers_df, col("seller_id") == raw_sellers_df["seller_id"], "left")
+    .join(raw_sellers_df, col("seller_id") == raw_sellers_df["seller_id"], "left") \
+    .drop(raw_sellers_df["seller_id"])  # Drop duplicate seller_id
+
 
 # Minimal groupBy: order_id + order_date, pick first of each (validates joins work).
 curated_orders = temp_joined \
