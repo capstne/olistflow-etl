@@ -20,6 +20,14 @@ spark = glueContext.spark_session
 job = Job(glueContext)
 job.init(args['JOB_NAME'], args)
 
+# ************ Debug: show current DBs and tables
+
+print(spark.catalog.currentDatabase())
+spark.sql("SHOW DATABASES").show()
+spark.sql("USE olistflow_etl_raw").show()  # or lowercase
+spark.sql("SHOW TABLES IN olistflow_etl_raw").show()
+
+
 # Load raw tables from Glue Catalog (after crawler).
 raw_orders = spark.table(f"{args['RAW_DB']}.olist_orders_dataset_csv")
 raw_customers = spark.table(f"{args['RAW_DB']}.olist_customers_dataset_csv")
