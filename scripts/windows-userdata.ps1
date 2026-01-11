@@ -24,5 +24,33 @@ Start-Process -FilePath $installerPath -ArgumentList "/VERYSILENT /NORESTART /AL
 # Cleanup installer
 Remove-Item $installerPath -Force
 
-# Optional: Start pgAdmin or create shortcut (runs via Start Menu after install)
+# After pgAdmin install in userdata...
+$pgConfigPath = "${env:ProgramFiles}\pgAdmin 4\v9\runtime\config_local.py"
+$configContent = @"
+import os
+DATA_DIR = r'C:\\Users\\Public\\pgadmin4'
+SERVER_MODE = True
+CONNECTION_TIMEOUT = 60
+DEFAULT_SERVER = ''
+LOG_FILE = os.path.join(DATA_DIR, 'pgadmin4.log')
+SQLITE_PATH = os.path.join(DATA_DIR, 'pgadmin4.db')
+ALLOW_SAVE_PASSWORD = True
+SHOW_SYSTEM_OBJECTS = True
+MAX_ROWS = 1000
+PGAUDIT_LOG_CONNECTIONS = True
+"@
+
+# Ensure data dir
+New-Item -ItemType Directory -Force -Path "C:\Users\Public\pgadmin4" | Out-Null
+
+# Write config (enables browser access)
+$configContent | Out-File -FilePath $pgConfigPath -Encoding UTF8
+
+# Create batch to auto-start pgAdmin server
+$batchContent = @"
+@echo off
+cd /d "${env:ProgramFiles}\pgAdmin 4\v9\bin"
+pgAdmin4.exe
+"@
+$batchContent | Out-File -FilePath "${env:PUBLIC}\Desktop\Start pgAdmin Server.bat" -Encoding ASCII
 </powershell>
