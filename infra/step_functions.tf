@@ -7,8 +7,8 @@ resource "aws_sfn_state_machine" "etl" {
   type     = "STANDARD"
 
   definition = templatefile("${path.module}/stepfunctions/olistflow_etl.asl.json.tpl", {
-    crawler_name        = aws_glue_crawler.raw.name
-    raw_to_curated_job  = aws_glue_job.raw_to_curated.name
-    curated_to_rds_job  = aws_glue_job.curated_to_rds.name
+    crawler_name       = aws_glue_crawler.raw.name
+    raw_to_curated_job = aws_glue_job.raw_to_curated.name
+    curated_to_rds_job = aws_glue_job.curated_to_rds.name
   })
 }

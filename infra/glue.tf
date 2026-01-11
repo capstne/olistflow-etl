@@ -76,10 +76,10 @@ resource "aws_glue_job" "curated_to_rds" {
   default_arguments = {
     "--job-language" = "python"
 
-    "--CURATED_BUCKET"       = aws_s3_bucket.curated.bucket
-    "--CURATED_PREFIX"       = var.curated_prefix
-    "--CURATED_DB"           = aws_glue_catalog_database.curated.name
-    "--JDBC_CONNECTION_NAME" = aws_glue_connection.rds.name
+    "--CURATED_BUCKET"                   = aws_s3_bucket.curated.bucket
+    "--CURATED_PREFIX"                   = var.curated_prefix
+    "--CURATED_DB"                       = aws_glue_catalog_database.curated.name
+    "--JDBC_CONNECTION_NAME"             = aws_glue_connection.rds.name
     "--enable-metrics"                   = ""
     "--enable-continuous-cloudwatch-log" = "true"
   }

@@ -1,5 +1,9 @@
 # creates S3 buckets for raw, curated and artifacts data which versioning and server-side encryption enabled
 
+locals {
+  raw_files = fileset("${path.module}/data", "**")
+}
+
 resource "aws_s3_bucket" "raw" {
   bucket        = "${local.name}-raw"
   force_destroy = true
@@ -52,4 +56,14 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "artifacts" {
   rule {
     apply_server_side_encryption_by_default { sse_algorithm = "AES256" }
   }
+}
+
+resource "aws_s3_object" "add_raw_files" {
+  for_each = local.raw_files
+
+  bucket      = aws_s3_bucket.raw.id
+  key         = "data/${each.value}"
+  source      = "${path.module}/data/${each.value}"
+  source_hash = filemd5("${path.module}/data/${each.value}")
+  tags        = local.tags
 }
