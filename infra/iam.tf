@@ -82,6 +82,14 @@ data "aws_iam_policy_document" "glue_policy" {
     ]
     resources = ["*"]
   }
+
+    statement {
+    sid = "CloudWatch"
+    actions = [
+      "cloudwatch:PutMetricData"
+    ]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_role_policy" "glue_inline" {
