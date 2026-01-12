@@ -1,46 +1,50 @@
-# Run as System on startup
+<powershell>
+Start-Transcript "C:\userdata.log" -Append
+Write-Output "=== Userdata Start: $(Get-Date) ==="
+
+# Set admin password
 $Admin = [adsi]("WinNT://./administrator,user")
 $Admin.SetPassword("${admin_password}")
 $Admin.SetInfo()
+Write-Output "Admin password set"
 
 # Enable RDP
 Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -value 0
 Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+Write-Output "RDP enabled"
 
-# Install pgAdmin 4 (latest stable, 64-bit)
-$pgAdminUrl = "https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v9.4/windows/pgadmin4-9.4-x64.exe"
-$installerPath = "C:\temp\pgadmin4.exe"
+# Wait for network
+do { Start-Sleep 10 } while (-not (Test-NetConnection 8.8.8.8 -InformationLevel Quiet))
+Write-Output "Network ready"
 
-# Create temp directory
-New-Item -ItemType Directory -Force -Path "C:\temp" | Out-Null
+# Smaller, reliable HTTPS download (direct pgAdmin mirror)
+$pgAdminUrl = "https://github.com/pgadmin-org/pgadmin4/releases/download/v9.4/pgadmin4-9.4-x64.exe"
+New-Item "C:\temp" -Force | Out-Null
+Invoke-WebRequest -Uri $pgAdminUrl -OutFile "C:\temp\pgadmin4.exe" -UseBasicParsing -TimeoutSec 600
+Write-Output "Downloaded pgAdmin"
 
-# Download & install
-Invoke-WebRequest -Uri $pgAdminUrl -OutFile $installerPath
-Start-Process -FilePath $installerPath -ArgumentList "/VERYSILENT /NORESTART /ALLUSERS /LOG=C:\temp\pgadmin_install.log" -Wait -NoNewWindow
-Remove-Item $installerPath -Force
+# Install
+Start-Process "C:\temp\pgadmin4.exe" -ArgumentList "/VERYSILENT /NORESTART /ALLUSERS /LOG=C:\temp\install.log" -Wait -NoNewWindow
+Write-Output "pgAdmin installed"
 
-# pgAdmin config - HARDCODED PATHS (no escaping needed)
-$pgConfigPath = "C:\Program Files\pgAdmin 4\v9\runtime\config_local.py"
+# Config (hardcoded - works)
 $configContent = @"
 import os
 DATA_DIR = r'C:\Users\Public\pgadmin4'
 SERVER_MODE = True
-CONNECTION_TIMEOUT = 60
-LOG_FILE = os.path.join(DATA_DIR, 'pgadmin4.log')
-SQLITE_PATH = os.path.join(DATA_DIR, 'pgadmin4.db')
 ALLOW_SAVE_PASSWORD = True
-SHOW_SYSTEM_OBJECTS = True
-MAX_ROWS = 1000
-PGAUDIT_LOG_CONNECTIONS = True
 "@
+New-Item "C:\Users\Public\pgadmin4" -Force | Out-Null
+$configContent | Out-File "C:\Program Files\pgAdmin 4\v9\runtime\config_local.py" -Encoding UTF8
+Write-Output "Config written"
 
-# Ensure data dir & write config
-New-Item -ItemType Directory -Force -Path "C:\Users\Public\pgadmin4" | Out-Null
-$configContent | Out-File -FilePath $pgConfigPath -Encoding UTF8
-
-# Batch file - HARDCODED
+# Desktop shortcut
 $batchContent = @"
 @echo off
-"C:\Program Files\pgAdmin 4\v9\bin\pgAdmin4.exe"
+start "" "C:\Program Files\pgAdmin 4\v9\bin\pgAdmin4.exe"
 "@
-$batchContent | Out-File -FilePath "C:\Users\Public\Desktop\Start pgAdmin Server.bat" -Encoding ASCII
+$batchContent | Out-File "C:\Users\Public\Desktop\Start pgAdmin.bat" -Encoding ASCII
+
+Write-Output "=== Userdata Complete: $(Get-Date) ==="
+Stop-Transcript
+</powershell>
