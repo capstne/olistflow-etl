@@ -6,3 +6,6 @@ $Admin.SetInfo()
 # Enable RDP
 Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -value 0
 Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+# install pg4 admin
+winget install --id PostgreSQL.pgAdmin -e
