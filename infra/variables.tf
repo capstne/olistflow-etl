@@ -42,3 +42,8 @@ variable "curated_prefix" {
   type    = string
   default = "olist/"
 }
+
+variable "sql_scripts_prefix" {
+  type    = string
+  default = "scripts/sql/"
+}
