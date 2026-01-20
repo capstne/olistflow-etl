@@ -1,8 +1,9 @@
 # creates S3 buckets for raw, curated and artifacts data which versioning and server-side encryption enabled - added necessary S3 objects for initial data and Glue jobs
 
 locals {
-  olist_raw_files = fileset("${path.root}/../data/olist", "**")
-  glue_jobs_files = fileset("${path.root}/../glue/jobs", "**")
+  olist_raw_files  = fileset("${path.root}/../data/olist", "**")
+  glue_jobs_files  = fileset("${path.root}/../glue/jobs", "**")
+  sql_script_files = fileset("${path.root}/../scripts/sql", "**")
 }
 
 resource "aws_s3_bucket" "raw" {
@@ -76,5 +77,15 @@ resource "aws_s3_object" "add_glue_jobs_files" {
   key         = "${var.glue_jobs_prefix}${each.value}"
   source      = "${path.root}/../${var.glue_jobs_prefix}${each.value}"
   source_hash = filemd5("${path.root}/../${var.glue_jobs_prefix}${each.value}")
+  tags        = local.tags
+}
+
+resource "aws_s3_object" "add_sql_script" {
+  for_each = local.sql_script_files
+
+  bucket      = aws_s3_bucket.artifacts.id
+  key         = "${var.sql_scripts_prefix}${each.value}"
+  source      = "${path.root}/../${var.sql_scripts_prefix}${each.value}"
+  source_hash = filemd5("${path.root}/../${var.sql_scripts_prefix}${each.value}")
   tags        = local.tags
 }
