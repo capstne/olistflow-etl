@@ -89,3 +89,11 @@ resource "aws_s3_object" "add_sql_script" {
   source_hash = filemd5("${path.root}/../${var.sql_scripts_prefix}${each.value}")
   tags        = local.tags
 }
+
+resource "aws_s3_object" "add_pgadmin_servers_connection_details" {
+  bucket = aws_s3_bucket.artifacts.id
+  key    = "pgadmin/servers.json"
+
+  content      = local.pgadmin_servers_json
+  content_type = "application/json"
+}
