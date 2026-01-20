@@ -1,7 +1,7 @@
 # generates template file for import into pgadmin via s3 bucket
 
 locals {
-  pgadmin_servers_json = templatefile("../templates/servers.json.tmpl", { 
+  pgadmin_servers_json = templatefile("../templates/servers.json.tmpl", {
     server_name    = "RDS Postgres"
     server_host    = aws_db_instance.main.address
     server_port    = aws_db_instance.main.port
