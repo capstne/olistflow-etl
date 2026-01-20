@@ -21,10 +21,6 @@ spark = glueContext.spark_session
 job = Job(glueContext)
 job.init(args['JOB_NAME'], args)
 
-# Debug: SHOW DATABASES will only list 'default' - normal for raw Spark SQL
-print(spark.catalog.currentDatabase())
-spark.sql("SHOW DATABASES").show()
-
 # Load via GlueContext (bypasses Spark catalog issues)
 raw_orders_df = glueContext.create_dynamic_frame.from_catalog(
     database=args['RAW_DB'],
