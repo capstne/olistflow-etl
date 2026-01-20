@@ -50,7 +50,7 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids      = [aws_security_group.bastion.id]
   associate_public_ip_address = true
   key_name                    = aws_key_pair.bastion.key_name
-  iam_instance_profile        = aws_iam_instance_profile.bastion.name
+  iam_instance_profile        = aws_iam_instance_profile.bastion_profile.name
 
   root_block_device {
     volume_size = 30 # Windows minimum

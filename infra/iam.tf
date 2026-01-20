@@ -175,7 +175,7 @@ resource "aws_iam_role_policy" "s3_read" {
   })
 }
 
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "${local.name}-ec2-instance-profile"
-  role = aws_iam_role.ec2_role.name
+resource "aws_iam_instance_profile" "bastion_profile" {
+  name = "${local.name}-bastion-instance-profile"
+  role = aws_iam_role.bastion_role.name
 }
