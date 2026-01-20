@@ -148,3 +148,34 @@ resource "aws_iam_role_policy" "sfn_inline" {
   role   = aws_iam_role.sfn_role.id
   policy = data.aws_iam_policy_document.sfn_policy.json
 }
+
+resource "aws_iam_role" "bastion_role" {
+  name = "${local.name}-bastion-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "ec2.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "s3_read" {
+  role = aws_iam_role.bastion_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["s3:GetObject"]
+      Resource = aws_s3_bucket.artifacts.id
+    }]
+  })
+}
+
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "${local.name}-ec2-instance-profile"
+  role = aws_iam_role.ec2_role.name
+}
