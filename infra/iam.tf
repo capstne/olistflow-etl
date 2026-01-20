@@ -163,7 +163,7 @@ resource "aws_iam_role" "bastion_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "bastion_s3_readonly" {
-  role       = aws_iam_role.bastion.name
+  role       = aws_iam_role.bastion_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
 }
 
