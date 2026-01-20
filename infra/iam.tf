@@ -162,17 +162,9 @@ resource "aws_iam_role" "bastion_role" {
   })
 }
 
-resource "aws_iam_role_policy" "s3_read" {
-  role = aws_iam_role.bastion_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = ["s3:GetObject"]
-      Resource = aws_s3_bucket.artifacts.id
-    }]
-  })
+resource "aws_iam_role_policy_attachment" "bastion_s3_readonly" {
+  role       = aws_iam_role.bastion.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
 }
 
 resource "aws_iam_instance_profile" "bastion_profile" {
