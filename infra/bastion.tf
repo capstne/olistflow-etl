@@ -75,7 +75,7 @@ data "aws_ami" "windows" {
 
   filter {
     name   = "name"
-    values = ["Windows_11_Pro-English-*"]
+    values = ["Windows_Server-2022-English-Full-Base-*"]
   }
 
   filter {
