@@ -96,7 +96,10 @@ data "aws_iam_policy_document" "glue_policy" {
     sid = "EC2"
     actions = [
       "ec2:DescribeSubnets",
-      "ec2:DescribeSecurityGroups"
+      "ec2:DescribeSecurityGroups",
+      "ec2:DescribeVpcEndpoints",
+      "ec2:DescribeRouteTables",
+      "ec2:DescribeNetworkInterfaces"
     ]
     resources = ["*"]
   }
