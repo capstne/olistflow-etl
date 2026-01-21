@@ -51,7 +51,8 @@ data "aws_iam_policy_document" "glue_policy" {
       "glue:CreateTable",
       "glue:UpdateTable",
       "glue:BatchCreatePartition",
-      "glue:BatchUpdatePartition"
+      "glue:BatchUpdatePartition",
+      "glue:GetConnection"
     ]
     resources = ["*"]
   }
@@ -87,6 +88,15 @@ data "aws_iam_policy_document" "glue_policy" {
     sid = "CloudWatch"
     actions = [
       "cloudwatch:PutMetricData"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid = "EC2"
+    actions = [
+      "ec2:DescribeSubnets",
+      "ec2:DescribeSecurityGroups"
     ]
     resources = ["*"]
   }

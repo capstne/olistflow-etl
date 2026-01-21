@@ -1,6 +1,7 @@
 import sys
 from awsglue.transforms import *
 from awsglue.utils import getResolvedOptions
+from awsglue.dynamicframe import DynamicFrame
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
@@ -10,7 +11,9 @@ args = getResolvedOptions(sys.argv, [
     'JOB_NAME',
     'CURATED_DB',
     'JDBC_CONNECTION_NAME',
-    'URL'
+    'URL',
+    'USERNAME',
+    'PASSWORD'
 ])
 
 sc = SparkContext()
@@ -24,18 +27,30 @@ curated_orders = glueContext.create_dynamic_frame.from_catalog(
     table_name="orders"
 ).toDF()
 
-# Write to RDS Postgres via Glue JDBC connection (truncate + load).
-curated_orders.write \
-    .format("jdbc") \
-    .option("url", args['URL']) \
-    .option("connectionName", args['JDBC_CONNECTION_NAME']) \
-    .option("user", args['USER']) \
-    .option("password", args['PASSWORD']) \
-    .option("dbtable", "fact_orders") \
-    .option("truncate", "true") \
-    .option("driver", "org.postgresql.Driver") \
-    .mode("overwrite") \
-    .save()
+
+glueContext.write_dynamic_frame.from_options(
+    frame=DynamicFrame.fromDF(curated_orders, glueContext, "df"),
+    connection_type="postgresql",
+    connection_options={
+        "connectionName": args["JDBC_CONNECTION_NAME"],
+        "url": args["URL"],
+        "username": args["USERNAME"],
+        "password": args["PASSWORD"],
+        "dbtable": "fact_orders",
+        "database": "postgres",
+        "preactions": "TRUNCATE TABLE fact_orders"
+    }
+)
+
+## Write to RDS Postgres via Glue JDBC connection (truncate + load).
+# curated_orders.write \
+#     .format("jdbc") \
+#     .option("url", "jdbc:postgresql://olistflow-etl-dev.ct6v1kobwsnl.us-east-1.rds.amazonaws.com:5432/postgres") \
+#     .option("connectionName", args['JDBC_CONNECTION_NAME']) \
+#     .option("dbtable", "fact_orders") \
+#     .option("truncate", "true") \
+#     .mode("overwrite") \
+#     .save()
 
 # # Also write dims (simple extracts).
 # dims = curated_orders.select(
