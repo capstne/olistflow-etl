@@ -89,7 +89,7 @@ resource "aws_security_group" "rds" {
     to_port         = 5432
     protocol        = "tcp"
     self            = true  # Glue ephemeral ENIs
-    description     = "Glue → RDS PostgreSQL"
+    description     = "Glue to RDS PostgreSQL"
   }
 
   # Rule 2: Spark intra-cluster comms (All TCP self)
@@ -107,7 +107,7 @@ resource "aws_security_group" "rds" {
     to_port     = 5432
     protocol    = "tcp"
     cidr_blocks = [aws_vpc.main.cidr_block]
-    description = "VPC → RDS"
+    description = "VPC to RDS"
   }
 
   egress {
