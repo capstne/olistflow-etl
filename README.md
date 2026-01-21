@@ -1,2 +1,131 @@
-# olistflow-etl
-olistflow-etl is an end-to-end data pipeline for the Olist e-commerce dataset that extracts raw transactional data, applies cleaning and business transformations, and loads curated tables into a warehouse to support analytics on sales, customers, and deliveries.
+# OlistFlow ETL - Project README
+
+OlistFlow ETL processes the Brazilian Olist e-commerce dataset through a complete AWS serverless pipeline. The project transforms raw CSV files into curated Parquet tables and loads them into PostgreSQL for analytics reporting.
+
+## 🎯 Project Overview
+**OlistFlow ETL** demonstrates production-grade data engineering practices:
+
+- **Infrastructure**: Terraform-provisioned VPC, S3 data lake (raw/curated), RDS PostgreSQL, AWS Glue 4.0 jobs
+- **ETL Pipeline**: PySpark DynamicFrames processing Olist orders/customers/products (2016-2018)
+- **CI/CD**: GitHub Actions OIDC workflows for PR plan/main apply
+- **Repo**: [github.com/capstne/olistflow-etl](https://github.com/capstne/olistflow-etl)
+
+## 🏗️ Architecture
+```bash
+Raw CSVs (Olist Kaggle) 
+    ↓ S3 olistflow-etl-dev-raw
+Glue raw_to_curated.py
+    ↓ S3 olistflow-etl-dev-curated (Parquet)
+Glue curated_to_rds.py  
+    ↓ RDS PostgreSQL fact_orders/dim_* tables (VPC private)
+```
+**Key Components**:
+- **Networking**: Private VPC + NAT Gateway + S3 VPC Endpoint + Glue/RDS Security Groups
+- **Data Catalog**: Glue databases `olistflow_etl_raw` / `olistflow_etl_curated`
+- **IAM**: Least-privilege roles + OIDC GitHub Actions provider
+
+## ✅ Major Achievements
+
+### Infrastructure Provisioning
+✅ VPC + Private Subnets + Security Groups (self-referencing Glue SG)
+✅ S3 Buckets: raw/curated/artifacts (server-side encryption)
+✅ RDS PostgreSQL (private, Multi-AZ ready)
+✅ Glue 4.0 Jobs + Databases + JDBC Connections
+✅ Lake Formation disabled (IAM_ALLOWED_PRINCIPALS Super)
+​
+### ETL Implementation
+
+✅ raw_to_curated.py: DynamicFrame joins/filters → Parquet
+✅ curated_to_rds.py: JDBC write fact_orders (TRUNCATE preactions)
+✅ Spark catalog fixes: glueContext.create_dynamic_frame.from_catalog()
+​
+
+### Production Troubleshooting
+- **Fixed**: Lake Formation blocking Glue databases → IAM Super permissions
+- **Fixed**: JDBC "connection attempt failed" → VPC subnet/SG alignment
+- **Fixed**: `url` key error → from_jdbc_conf with explicit connectionName
+
+## 🚀 Quick Start
+
+```bash
+1. Clone & Setup
+git clone https://github.com/capstne/olistflow-etl
+cd olistflow-etl/infra
+
+2. Initialize (dev environment)
+terraform init -backend-config=envs/dev/s3-backend.tfvars
+
+3. Deploy full stack
+terraform apply -var-file=envs/dev/terraform.tfvars
+
+4. Upload Olist CSVs to raw bucket
+aws s3 cp olist_dataset/ s3://olistflow-etl-dev-raw/olist/
+
+5. Run ETL (manual or future Step Functions)
+aws glue start-job-run --job-name olistflow-etl-dev-raw-to-curated
+aws glue start-job-run --job-name olistflow-etl-dev-curated-to-rds
+```
+
+📁 Repository Structure
+
+```bash
+olistflow-etl/
+├── infra/              # 🏗️ Terraform IaC
+│   ├── main.tf         # VPC/S3/Glue/RDS/IAM
+│   ├── envs/dev/       # tfvars + backend
+│   └── modules/        # Reusable components
+├── glue/               # ✨ PySpark ETL
+│   ├── raw_to_curated.py
+│   └── curated_to_rds.py
+├── .github/workflows/  # 🤖 CI/CD
+│   ├── terraform-pr.yml
+│   └── terraform-apply.yml
+└── README.md
+```
+
+🛠️ Technologies
+
+```bash
+| Category   | Technologies                                          |
+| ---------- | ----------------------------------------------------- |
+| IaC        | Terraform, GitHub Actions OIDC                        |
+| Data       | S3, Glue Data Catalog, Parquet, PostgreSQL            |
+| ETL        | AWS Glue 4.0 PySpark, DynamicFrames, JDBC             |
+| Networking | VPC, NAT Gateway, Security Groups, VPC Endpoints      |
+| Security   | IAM Roles, Lake Formation (IAM mode), Secrets Manager |
+
+```
+
+🎉 Key Learnings
+* Glue Networking: Jobs must match RDS VPC/subnet/SG exactly
+
+* Lake Formation: IAM_ALLOWED_PRINCIPALS Super = IAM-only mode
+
+* PySpark: Use glueContext.create_dynamic_frame over spark.sql
+
+* JDBC Writes: from_jdbc_conf + explicit connectionName > connection_options
+
+🔮 Next Steps
+* Step Functions orchestrator (olistflow-etl-orchestrator-dev)
+
+* Glue Crawlers for schema evolution
+
+* QuickSight dashboards (revenue/customer analytics)
+
+* Cost monitoring + prod environment tfvars
+
+* Data quality tests (Great Expectations)
+
+ 📈 Business Value
+* Transforms 100K+ Olist orders into star schema for:
+
+* Revenue analysis by seller/period
+
+* Customer segmentation + LTV
+
+* Delivery performance KPIs
+
+* Product performance ranking
+
+⭐ Built for portfolio showcase - Complete data platform from raw ingest to analytics-ready mart.
+
