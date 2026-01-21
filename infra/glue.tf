@@ -97,10 +97,8 @@ resource "aws_glue_job" "curated_to_rds" {
     "--CURATED_BUCKET"                   = aws_s3_bucket.curated.bucket
     "--CURATED_PREFIX"                   = var.curated_prefix
     "--CURATED_DB"                       = aws_glue_catalog_database.curated.name
+    "--RAW_DB"                           = aws_glue_catalog_database.raw.name
     "--JDBC_CONNECTION_NAME"             = aws_glue_connection.rds.name
-    "--URL"                              = "jdbc:postgresql://${aws_db_instance.main.endpoint}/postgres"
-    "--USERNAME"                         = "postgres"
-    "--PASSWORD"                         = random_password.rds_password.result
     "--enable-metrics"                   = ""
     "--enable-continuous-cloudwatch-log" = "true"
   }

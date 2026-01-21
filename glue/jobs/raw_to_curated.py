@@ -83,12 +83,12 @@ curated_orders = temp_joined \
         first("customer_zip_code_prefix").alias("customer_zip_code_prefix"),
         first("customer_city").alias("customer_city"),
         first("customer_state").alias("customer_state"),
-        first("price").alias("sample_price"),  # Test sum later
-        first("freight_value").alias("sample_freight"),
-        first("payment_installments").alias("sample_installments"),
-        first("payment_sequential").alias("sample_payment_seq"),
+        first("price").alias("sample_price"),  
+        first("freight_value").alias("total_price"),
+        first("payment_installments").alias("installments"),
+        first("payment_sequential").alias("payment_count"),
         first("order_status").alias("order_status"),
-        first("review_score").alias("sample_review_score")
+        first("review_score").alias("review_score")
     ) \
     .select(
         col("order_id"),
@@ -98,12 +98,12 @@ curated_orders = temp_joined \
         col("customer_zip_code_prefix").cast(IntegerType()),
         col("customer_city"),
         col("customer_state"),
-        col("sample_price").cast(DoubleType()),
-        col("sample_freight").cast(DoubleType()),
-        col("sample_installments").cast(IntegerType()),
-        col("sample_payment_seq").cast(IntegerType()),
+        col("total_price").cast(DoubleType()),
+        col("total_freight").cast(DoubleType()),
+        col("installments").cast(IntegerType()),
+        col("payment_count").cast(IntegerType()),
         col("order_status"),
-        col("sample_review_score").cast(FloatType())
+        col("review_score").cast(FloatType())
     )
 
 # convert to pandas

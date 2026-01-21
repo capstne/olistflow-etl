@@ -10,10 +10,8 @@ from pyspark.sql import functions as F
 args = getResolvedOptions(sys.argv, [
     'JOB_NAME',
     'CURATED_DB',
-    'JDBC_CONNECTION_NAME',
-    'URL',
-    'USERNAME',
-    'PASSWORD'
+    'RAW_DB',
+    'JDBC_CONNECTION_NAME'
 ])
 
 sc = SparkContext()
@@ -27,44 +25,59 @@ curated_orders = glueContext.create_dynamic_frame.from_catalog(
     table_name="orders"
 ).toDF()
 
+dim_customers = glueContext.create_dynamic_frame.from_catalog(
+    database=args['RAW_DB'],
+    table_name="olist_customers_dataset_csv"
+).toDF()
 
-glueContext.write_dynamic_frame.from_options(
+dim_products = glueContext.create_dynamic_frame.from_catalog(
+    database=args['RAW_DB'],
+    table_name="olist_products_dataset_csv"
+).toDF()
+
+dim_sellers = glueContext.create_dynamic_frame.from_catalog(
+    database=args['RAW_DB'],
+    table_name="olist_sellers_dataset_csv"
+).toDF()
+
+glueContext.write_dynamic_frame.from_jdbc_conf(
     frame=DynamicFrame.fromDF(curated_orders, glueContext, "df"),
-    connection_type="postgresql",
+    catalog_connection=args['JDBC_CONNECTION_NAME'],
     connection_options={
-        "connectionName": args["JDBC_CONNECTION_NAME"],
-        "url": args["URL"],
-        "username": args["USERNAME"],
-        "password": args["PASSWORD"],
-        "dbtable": "fact_orders",
         "database": "postgres",
-        "preactions": "TRUNCATE TABLE fact_orders"
+        "dbtable": "olistflow.fact_orders",
+        "preactions": "TRUNCATE TABLE olistflow.fact_orders;"
     }
 )
 
-## Write to RDS Postgres via Glue JDBC connection (truncate + load).
-# curated_orders.write \
-#     .format("jdbc") \
-#     .option("url", "jdbc:postgresql://olistflow-etl-dev.ct6v1kobwsnl.us-east-1.rds.amazonaws.com:5432/postgres") \
-#     .option("connectionName", args['JDBC_CONNECTION_NAME']) \
-#     .option("dbtable", "fact_orders") \
-#     .option("truncate", "true") \
-#     .mode("overwrite") \
-#     .save()
+glueContext.write_dynamic_frame.from_jdbc_conf(
+    frame=DynamicFrame.fromDF(dim_customers, glueContext, "df"),
+    catalog_connection=args['JDBC_CONNECTION_NAME'],
+    connection_options={
+        "database": "postgres",
+        "dbtable": "olistflow.dim_customers",
+        "preactions": "TRUNCATE TABLE olistflow.dim_customers;"
+    }
+)
 
-# # Also write dims (simple extracts).
-# dims = curated_orders.select(
-#     "customer_id", "customer_unique_id", "customer_zip_code_prefix",
-#     "customer_city", "customer_state"
-# ).distinct()
+glueContext.write_dynamic_frame.from_jdbc_conf(
+    frame=DynamicFrame.fromDF(dim_products['product_id', 'product_category_name'], glueContext, "df"),
+    catalog_connection=args['JDBC_CONNECTION_NAME'],
+    connection_options={
+        "database": "postgres",
+        "dbtable": "olistflow.dim_products",
+        "preactions": "TRUNCATE TABLE olistflow.dim_products;"
+    }
+)
 
-# dims.write \
-#     .format("jdbc") \
-#     .option("url", "jdbc:postgresql://your-rds-endpoint:5432/your_db_name") \ 
-#     .option("connectionName", args['JDBC_CONNECTION_NAME']) \
-#     .option("dbtable", "dim_customers") \
-#     .option("truncate", "true") \
-#     .mode("overwrite") \
-#     .save()
+glueContext.write_dynamic_frame.from_jdbc_conf(
+    frame=DynamicFrame.fromDF(dim_sellers, glueContext, "df"),
+    catalog_connection=args['JDBC_CONNECTION_NAME'],
+    connection_options={
+        "database": "postgres",
+        "dbtable": "olistflow.dim_sellers",
+        "preactions": "TRUNCATE TABLE olistflow.dim_sellers;"
+    }
+)
 
 job.commit()
