@@ -95,7 +95,7 @@ resource "aws_glue_job" "curated_to_rds" {
     "--JDBC_CONNECTION_NAME"             = aws_glue_connection.rds.name
     "--URL"                              = "jdbc:postgresql://${aws_db_instance.main.endpoint}/postgres"
     "--USER"                             = "postgres"
-    "--PASSWORD"                         = andom_password.rds_password.result
+    "--PASSWORD"                         = random_password.rds_password.result
     "--enable-metrics"                   = ""
     "--enable-continuous-cloudwatch-log" = "true"
   }
