@@ -85,20 +85,20 @@ resource "aws_security_group" "rds" {
 
   # Rule 1: PostgreSQL from Glue ENIs (self-reference)
   ingress {
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    self            = true  # Glue ephemeral ENIs
-    description     = "Glue to RDS PostgreSQL"
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    self        = true # Glue ephemeral ENIs
+    description = "Glue to RDS PostgreSQL"
   }
 
   # Rule 2: Spark intra-cluster comms (All TCP self)
   ingress {
-    from_port       = 0
-    to_port         = 65535
-    protocol        = "tcp"
-    self            = true
-    description     = "Glue/Spark intra-cluster"
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    self        = true
+    description = "Glue/Spark intra-cluster"
   }
 
   # Rule 3: VPC-wide 5432 (if needed - optional)
