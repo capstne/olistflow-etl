@@ -109,9 +109,6 @@ curated_orders = temp_joined \
 # convert to pandas
 curated_orders_p_df = curated_orders.toPandas()
 
-# create glue db if it doesn't exist and write fact data to as well as s3 bucket
-wr.catalog.create_database(args['CURATED_DB'], exist_ok=True)
-
 wr.s3.to_parquet(
     df=curated_orders_p_df,
     path=f"s3://{args['CURATED_BUCKET']}/{args['CURATED_PREFIX']}orders/",
