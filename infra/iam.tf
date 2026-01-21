@@ -52,6 +52,7 @@ data "aws_iam_policy_document" "glue_policy" {
       "glue:UpdateTable",
       "glue:BatchCreatePartition",
       "glue:BatchUpdatePartition",
+      "glue:BatchDeletePartition",
       "glue:GetConnection"
     ]
     resources = ["*"]
