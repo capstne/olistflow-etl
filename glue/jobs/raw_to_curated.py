@@ -21,10 +21,6 @@ spark = glueContext.spark_session
 job = Job(glueContext)
 job.init(args['JOB_NAME'], args)
 
-# Debug: SHOW DATABASES will only list 'default' - normal for raw Spark SQL
-print(spark.catalog.currentDatabase())
-spark.sql("SHOW DATABASES").show()
-
 # Load via GlueContext (bypasses Spark catalog issues)
 raw_orders_df = glueContext.create_dynamic_frame.from_catalog(
     database=args['RAW_DB'],
@@ -110,36 +106,20 @@ curated_orders = temp_joined \
         col("sample_review_score").cast(FloatType())
     )
 
+# convert to pandas
+curated_orders_p_df = curated_orders.toPandas()
+
+# create glue db if it doesn't exist and write fact data to as well as s3 bucket
 wr.catalog.create_database(args['CURATED_DB'], exist_ok=True)
 
-# Define schema manually from printSchema() output
-columns_types = {
-    "order_id": "string",
-    "customer_id": "string",
-    "customer_unique_id": "string",
-    "customer_zip_code_prefix": "int",
-    "customer_city": "string",
-    "customer_state": "string",
-    "sample_price": "double",
-    "sample_freight": "double",
-    "sample_installments": "int",
-    "sample_payment_seq": "int",
-    "order_status": "string",
-    "sample_review_score": "float"
-}
-
-# # infer columns_types from 1st row
-# sample_pd = curated_orders.limit(1).toPandas()  # Small sample for inference
-# columns_types = wr.catalog.extract_athena_types(sample_pd)[0] 
-
-partitions_types = {"order_date": "date"}
-
-wr.catalog.create_parquet_table(
+wr.s3.to_parquet(
+    df=curated_orders_p_df,
+    path=f"s3://{args['CURATED_BUCKET']}/{args['CURATED_PREFIX']}orders/",
+    dataset=True,
     database=args['CURATED_DB'],
     table="orders",
-    path=f"s3://{args['CURATED_BUCKET']}/{args['CURATED_PREFIX']}orders/",
-    columns_types=columns_types,
-    partitions_types=partitions_types,
-    mode="overwrite"
+    mode="overwrite",
+    partition_cols=['order_date']
 )
+
 job.commit()
