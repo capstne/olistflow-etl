@@ -53,6 +53,9 @@ resource "aws_glue_job" "raw_to_curated" {
     script_location = "s3://${aws_s3_bucket.artifacts.bucket}/${var.glue_jobs_prefix}${var.glue_script_raw_to_curated_key}"
   }
 
+  connections = [aws_glue_connection.rds.name]
+
+
   default_arguments = {
     "--job-language" = "python"
 
@@ -85,6 +88,8 @@ resource "aws_glue_job" "curated_to_rds" {
     python_version  = "3"
     script_location = "s3://${aws_s3_bucket.artifacts.bucket}/${var.glue_jobs_prefix}${var.glue_script_curated_to_rds_key}"
   }
+
+  connections = [aws_glue_connection.rds.name]
 
   default_arguments = {
     "--job-language" = "python"
