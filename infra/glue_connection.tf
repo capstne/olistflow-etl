@@ -3,7 +3,7 @@ resource "aws_glue_connection" "rds" {
   name = replace("${local.name}-rds-jdbc", "-", "_")
 
   connection_properties = {
-    JDBC_CONNECTION_URL = "jdbc:postgresql://${aws_db_instance.main.endpoint}/postgres"
+    JDBC_CONNECTION_URL = "jdbc:postgresql://${aws_db_instance.main.endpoint}/postgres?sslmode=require"
     USERNAME            = "postgres"
     PASSWORD            = random_password.rds_password.result
   }

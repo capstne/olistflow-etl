@@ -56,7 +56,7 @@ resource "aws_eip" "nat" {
 
 resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public[0].id 
+  subnet_id     = aws_subnet.public[0].id
   tags          = local.tags
 }
 
@@ -87,6 +87,7 @@ resource "aws_security_group" "rds" {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
+    self        = true
     cidr_blocks = [aws_vpc.main.cidr_block]
   }
 
