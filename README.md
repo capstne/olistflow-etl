@@ -72,7 +72,7 @@ aws glue start-job-run --job-name olistflow-etl-dev-curated-to-rds
 .
 ├── README.md
 ├── data
-│   └── olist
+│   └── olist                                       # raw data from kaggle
 │       ├── olist_customers_dataset.csv
 │       ├── olist_order_items_dataset.csv
 │       ├── olist_order_payments_dataset.csv
@@ -80,11 +80,11 @@ aws glue start-job-run --job-name olistflow-etl-dev-curated-to-rds
 │       ├── olist_orders_dataset.csv
 │       ├── olist_products_dataset.csv
 │       └── olist_sellers_dataset.csv
-├── glue
+├── glue                                            # ✨ PySpark ETL jobs
 │   └── jobs
 │       ├── curated_to_rds.py
 │       └── raw_to_curated.py
-├── infra
+├── infra                                           # 🏗️ Terraform IaC
 │   ├── backend.tf
 │   ├── bastion.tf
 │   ├── glue.tf
@@ -104,12 +104,12 @@ aws glue start-job-run --job-name olistflow-etl-dev-curated-to-rds
 │   ├── variables.tf
 │   ├── versions.tf
 │   └── vpc.tf
-├── scripts
+├── scripts                                         # SQL and windows scripts
 │   ├── sql
 │   │   └── init.sql
 │   └── windows
 │       └── windows-userdata.ps1
-└── templates
+└── templates                                       # postgres sql server connection file template
     └── servers.json.tmpl
 ```
 
