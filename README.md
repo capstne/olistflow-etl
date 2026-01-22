@@ -27,17 +27,17 @@ Glue curated_to_rds.py
 ## ✅ Major Achievements
 
 ### Infrastructure Provisioning
-✅ VPC + Private Subnets + Security Groups (self-referencing Glue SG)
-✅ S3 Buckets: raw/curated/artifacts (server-side encryption)
-✅ RDS PostgreSQL (private, Multi-AZ ready)
-✅ Glue 4.0 Jobs + Databases + JDBC Connections
-✅ Lake Formation disabled (IAM_ALLOWED_PRINCIPALS Super)
+* ✅ VPC + Private Subnets + Security Groups (self-referencing Glue SG)
+* ✅ S3 Buckets: raw/curated/artifacts (server-side encryption)
+* ✅ RDS PostgreSQL (private, Multi-AZ ready)
+* ✅ Glue 4.0 Jobs + Databases + JDBC Connections
+* ✅ Lake Formation disabled (IAM_ALLOWED_PRINCIPALS Super)
 ​
 ### ETL Implementation
 
-✅ raw_to_curated.py: DynamicFrame joins/filters → Parquet
-✅ curated_to_rds.py: JDBC write fact_orders (TRUNCATE preactions)
-✅ Spark catalog fixes: glueContext.create_dynamic_frame.from_catalog()
+* ✅ raw_to_curated.py: DynamicFrame joins/filters → Parquet
+* ✅ curated_to_rds.py: JDBC write fact_orders (TRUNCATE preactions)
+* ✅ Spark catalog fixes: glueContext.create_dynamic_frame.from_catalog()
 ​
 
 ### Production Troubleshooting
@@ -69,18 +69,48 @@ aws glue start-job-run --job-name olistflow-etl-dev-curated-to-rds
 📁 Repository Structure
 
 ```bash
-olistflow-etl/
-├── infra/              # 🏗️ Terraform IaC
-│   ├── main.tf         # VPC/S3/Glue/RDS/IAM
-│   ├── envs/dev/       # tfvars + backend
-│   └── modules/        # Reusable components
-├── glue/               # ✨ PySpark ETL
-│   ├── raw_to_curated.py
-│   └── curated_to_rds.py
-├── .github/workflows/  # 🤖 CI/CD
-│   ├── terraform-pr.yml
-│   └── terraform-apply.yml
-└── README.md
+.
+├── README.md
+├── data
+│   └── olist                                       # raw data from kaggle
+│       ├── olist_customers_dataset.csv
+│       ├── olist_order_items_dataset.csv
+│       ├── olist_order_payments_dataset.csv
+│       ├── olist_order_reviews_dataset.csv
+│       ├── olist_orders_dataset.csv
+│       ├── olist_products_dataset.csv
+│       └── olist_sellers_dataset.csv
+├── glue                                            # ✨ PySpark ETL jobs
+│   └── jobs
+│       ├── curated_to_rds.py
+│       └── raw_to_curated.py
+├── infra                                           # 🏗️ Terraform IaC
+│   ├── backend.tf
+│   ├── bastion.tf
+│   ├── glue.tf
+│   ├── glue_connection.tf
+│   ├── iam.tf
+│   ├── lakeformation.tf
+│   ├── main.tf
+│   ├── outputs.tf
+│   ├── pgadmin.tf
+│   ├── rds.tf
+│   ├── s3.tf
+│   ├── s3gateway.tf
+│   ├── secrets.tf
+│   ├── step_functions.tf
+│   ├── stepfunctions
+│   │   └── olistflow_etl.asl.json.tpl
+│   ├── variables.tf
+│   ├── versions.tf
+│   └── vpc.tf
+├── scripts                                         # SQL and windows scripts
+│   ├── sql
+│   │   └── init.sql
+│   └── windows
+│       └── windows-userdata.ps1
+└── templates                                       # postgres sql server connection file template
+    └── servers.json.tmpl
 ```
 
 🛠️ Technologies

@@ -96,16 +96,16 @@ data "aws_iam_policy_document" "glue_policy" {
   statement {
     sid = "EC2"
     actions = [
-				"ec2:DescribeVpcEndpoints",
-				"ec2:DescribeSubnets",
-				"ec2:DescribeSecurityGroups",
-				"ec2:DescribeRouteTables",
-				"ec2:DescribeNetworkInterfaces",
-				"ec2:CreateNetworkInterface",
-				"ec2:DeleteNetworkInterface",
-				"ec2:AttachNetworkInterface",
-				"ec2:CreateTags",
-				"ec2:DeleteTags"
+      "ec2:DescribeVpcEndpoints",
+      "ec2:DescribeSubnets",
+      "ec2:DescribeSecurityGroups",
+      "ec2:DescribeRouteTables",
+      "ec2:DescribeNetworkInterfaces",
+      "ec2:CreateNetworkInterface",
+      "ec2:DeleteNetworkInterface",
+      "ec2:AttachNetworkInterface",
+      "ec2:CreateTags",
+      "ec2:DeleteTags"
     ]
     resources = ["*"]
   }

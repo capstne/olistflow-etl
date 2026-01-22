@@ -13,7 +13,7 @@ resource "aws_security_group" "bastion" {
     from_port   = 3389 # RDP
     to_port     = 3389
     protocol    = "tcp"
-    cidr_blocks = ["99.241.135.123/32"] # if not Temi, replace with your laptop's public IP
+    cidr_blocks = ["99.241.135.123/32", "129.41.87.2/32"] # if not Temi, replace with your laptop's public IP
   }
 
   egress {
