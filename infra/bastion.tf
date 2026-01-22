@@ -58,9 +58,9 @@ resource "aws_instance" "bastion" {
     volume_type = "gp3"
   }
 
-  user_data = base64encode(templatefile("../scripts/windows/windows-userdata.ps1", {
+  user_data = templatefile("../scripts/windows/windows-userdata.ps1", {
     admin_password = data.aws_secretsmanager_secret_version.ec2_password.secret_string
-  }))
+  })
 
   tags = {
     Name = "windows-bastion-rds"
