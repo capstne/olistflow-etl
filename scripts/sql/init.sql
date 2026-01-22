@@ -38,7 +38,7 @@ CREATE TABLE olistflow.fact_orders (
     installments INTEGER,
     payment_count INTEGER,
     order_status VARCHAR(15),
-    avg_review_score DECIMAL(3,2)
+    review_score DECIMAL(3,2)
 );
 
 -- Indexes for performance.
