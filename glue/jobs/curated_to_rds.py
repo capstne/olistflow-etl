@@ -19,6 +19,13 @@ args = getResolvedOptions(sys.argv, [
     'JDBC_CONNECTION_NAME'
 ])
 
+db_tables = {
+    'customers': 'dim_customers',
+    'products': 'dim_products',
+    'sellers': 'dim_sellers',
+    'orders': 'fact_orders',
+}
+
 sc = SparkContext()
 glue_context = GlueContext(sc)
 job = Job(glue_context)
@@ -48,7 +55,7 @@ def func_get_connection_properties(my_glue_client):
     props = resp["Connection"]["ConnectionProperties"]
     return props
 
-def func_truncate_all_tables(my_connection_properties):
+def func_truncate_all_tables(my_connection_properties, my_tables):
     jdbc_url = my_connection_properties["JDBC_CONNECTION_URL"]
     user     = my_connection_properties.get("USERNAME")
     password = my_connection_properties.get("PASSWORD") 
@@ -68,20 +75,17 @@ def func_truncate_all_tables(my_connection_properties):
     
     conn.autocommit = True
     
+    sql_statement = """ TRUNCATE TABLE olistflow.{0}, olistflow.{1}, olistflow.{2}, olistflow.{3} RESTART IDENTITY;
+        """.format(my_tables['orders'], my_tables['sellers'], my_tables['products'], my_tables['customers'])
+    
     with conn.cursor() as cur:
-        cur.execute("""
-        TRUNCATE TABLE olistflow.fact_orders, 
-            olistflow.dim_sellers, 
-            olistflow.dim_products, 
-            olistflow.dim_customers 
-        RESTART IDENTITY;
-        """) 
+        cur.execute(sql_statement) 
         
 glue_client = boto3.client("glue")
 db_connection_properties = func_get_connection_properties(glue_client)
 
 # truncate all tables
-func_truncate_all_tables(db_connection_properties)
+func_truncate_all_tables(db_connection_properties, db_tables)
 
 # load all dimensions tables first
 dim_customers = func_get_dataframe(glue_context, args['RAW_DB'], 'olist_customers_dataset_csv')
@@ -89,19 +93,19 @@ dim_customers = dim_customers \
   .withColumnRenamed("customer_zip_code_prefix","zip_code_prefix") \
   .withColumnRenamed("customer_city","city") \
   .withColumnRenamed("customer_state","state")
-func_write_dynamic_frame(glue_context, dim_customers, args['JDBC_CONNECTION_NAME'], 'dim_customers')
+func_write_dynamic_frame(glue_context, dim_customers, args['JDBC_CONNECTION_NAME'], db_tables['customers'])
 
 dim_products = func_get_dataframe(glue_context, args['RAW_DB'], 'olist_products_dataset_csv')
 dim_products = dim_products['product_id', 'product_category_name']
-func_write_dynamic_frame(glue_context, dim_products, args['JDBC_CONNECTION_NAME'], 'dim_products')
+func_write_dynamic_frame(glue_context, dim_products, args['JDBC_CONNECTION_NAME'], db_tables['products'])
 
 dim_sellers = func_get_dataframe(glue_context, args['RAW_DB'], 'olist_sellers_dataset_csv')
-func_write_dynamic_frame(glue_context, dim_sellers, args['JDBC_CONNECTION_NAME'], 'dim_sellers')
+func_write_dynamic_frame(glue_context, dim_sellers, args['JDBC_CONNECTION_NAME'], db_tables['sellers'])
 
 # then load the fact table
 curated_orders = func_get_dataframe(glue_context, args['CURATED_DB'], 'orders')
 curated_orders = curated_orders.withColumn("order_date", to_date(col("order_date"), "yyyy-MM-dd")) 
 
-func_write_dynamic_frame(glue_context, curated_orders, args['JDBC_CONNECTION_NAME'], 'fact_orders')
+func_write_dynamic_frame(glue_context, curated_orders, args['JDBC_CONNECTION_NAME'], db_tables['orders'])
 
 job.commit()
