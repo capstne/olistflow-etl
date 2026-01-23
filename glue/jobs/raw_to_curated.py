@@ -16,48 +16,33 @@ args = getResolvedOptions(sys.argv, [
 ])
 
 sc = SparkContext()
-glueContext = GlueContext(sc)
-spark = glueContext.spark_session
-job = Job(glueContext)
+glue_context = GlueContext(sc)
+logger = glue_context.get_logger()
+
+job = Job(glue_context)
 job.init(args['JOB_NAME'], args)
 
-# Load via GlueContext (bypasses Spark catalog issues)
-raw_orders_df = glueContext.create_dynamic_frame.from_catalog(
-    database=args['RAW_DB'],
-    table_name="olist_orders_dataset_csv"
-).toDF()
+def func_load_df_from_catalog(my_glue_context, my_db, my_table):
+    logger.info('Loading {0} from Glue DB {1}.'.format(my_table, my_db))
+    try:
+        return my_glue_context.create_dynamic_frame.from_catalog(
+            database=my_db,
+            table_name=my_table
+        ).toDF()
+    except Exception as e:
+        logger.error('Error: {0}'.format(e))
 
-raw_customers_df = glueContext.create_dynamic_frame.from_catalog(
-    database=args['RAW_DB'],
-    table_name="olist_customers_dataset_csv"
-).toDF()
 
-raw_items_df = glueContext.create_dynamic_frame.from_catalog(
-    database=args['RAW_DB'],
-    table_name="olist_order_items_dataset_csv"
-).toDF()
+# Load via GlueContext
+raw_orders_df = func_load_df_from_catalog(glue_context, args['RAW_DB'], 'olist_orders_dataset_csv')
+raw_customers_df = func_load_df_from_catalog(glue_context, args['RAW_DB'], 'olist_customers_dataset_csv')
+raw_items_df = func_load_df_from_catalog(glue_context, args['RAW_DB'], 'olist_order_items_dataset_csv')
+raw_products_df = func_load_df_from_catalog(glue_context, args['RAW_DB'], 'olist_products_dataset_csv')
+raw_payments_df = func_load_df_from_catalog(glue_context, args['RAW_DB'], 'olist_order_payments_dataset_csv')
+raw_reviews_df = func_load_df_from_catalog(glue_context, args['RAW_DB'], 'olist_order_reviews_dataset_csv')
+raw_sellers_df = func_load_df_from_catalog(glue_context, args['RAW_DB'], 'olist_sellers_dataset_csv')
 
-raw_products_df = glueContext.create_dynamic_frame.from_catalog(
-    database=args['RAW_DB'],
-    table_name="olist_products_dataset_csv"
-).toDF()
-
-raw_payments_df = glueContext.create_dynamic_frame.from_catalog(
-    database=args['RAW_DB'],
-    table_name="olist_order_payments_dataset_csv"
-).toDF()
-
-raw_reviews_df = glueContext.create_dynamic_frame.from_catalog(
-    database=args['RAW_DB'],
-    table_name="olist_order_reviews_dataset_csv"
-).toDF()
-
-raw_sellers_df = glueContext.create_dynamic_frame.from_catalog(
-    database=args['RAW_DB'],
-    table_name="olist_sellers_dataset_csv"
-).toDF()
-
-# Add order_date partition column (parse from order_purchase_timestamp).
+# add order_date partition column (parse from order_purchase_timestamp).
 raw_orders_df = raw_orders_df.withColumn(
     "order_date",
     to_date(col("order_purchase_timestamp"))
@@ -65,7 +50,7 @@ raw_orders_df = raw_orders_df.withColumn(
 
 raw_sellers_df = raw_sellers_df.withColumnRenamed("seller_id", "raw_seller_id")
 
-# Curated orders (fact seed): join customers, items, products, payments, reviews, sellers, aggregate.
+# curated orders (fact seed): join customers, items, products, payments, reviews, sellers, aggregate.
 temp_joined = raw_orders_df \
     .join(raw_customers_df, "customer_id", "left") \
     .join(raw_items_df, "order_id", "left") \
@@ -74,7 +59,7 @@ temp_joined = raw_orders_df \
     .join(raw_reviews_df, "order_id", "left") \
     .join(raw_sellers_df, col("seller_id") == raw_sellers_df["raw_seller_id"], "left") 
 
-# Minimal groupBy: order_id + order_date, pick first of each (validates joins work).
+# minimal groupBy: order_id + order_date, pick first of each (validates joins work).
 curated_orders = temp_joined \
     .groupBy("order_id", "order_date") \
     .agg(
