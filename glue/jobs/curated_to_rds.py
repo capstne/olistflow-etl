@@ -136,15 +136,15 @@ func_write_dynamic_frame(glue_context, dim_customers, args['JDBC_CONNECTION_NAME
 
 dim_products = func_get_dataframe(glue_context, args['RAW_DB'], 'olist_products_dataset_csv')
 dim_products = dim_products['product_id', 'product_category_name']
-func_write_dynamic_frame(glue_context, dim_products, args['JDBC_CONNECTION_NAME'], db_tables['products'])
+func_write_dynamic_frame(glue_context, dim_products, args['JDBC_CONNECTION_NAME'], db_tables['products'], formatted_connection_creds['host'])
 
 dim_sellers = func_get_dataframe(glue_context, args['RAW_DB'], 'olist_sellers_dataset_csv')
-func_write_dynamic_frame(glue_context, dim_sellers, args['JDBC_CONNECTION_NAME'], db_tables['sellers'])
+func_write_dynamic_frame(glue_context, dim_sellers, args['JDBC_CONNECTION_NAME'], db_tables['sellers'], formatted_connection_creds['host'])
 
 # then load the fact table
 curated_orders = func_get_dataframe(glue_context, args['CURATED_DB'], 'orders')
 curated_orders = curated_orders.withColumn('order_date', to_date(col('order_date'), 'yyyy-MM-dd')) 
 
-func_write_dynamic_frame(glue_context, curated_orders, args['JDBC_CONNECTION_NAME'], db_tables['orders'])
+func_write_dynamic_frame(glue_context, curated_orders, args['JDBC_CONNECTION_NAME'], db_tables['orders'], formatted_connection_creds['host'])
 
 job.commit()
