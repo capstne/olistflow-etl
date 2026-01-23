@@ -63,7 +63,7 @@ def func_get_dataframe(my_glue_context, my_database, my_table):
         logger.error('Error: {0}'.format(e))
 
 def func_get_connection_properties(my_glue_client):
-    logger.info('Retrieving a DB Connection properties.')
+    logger.info('Retrieving DB Connection properties.')
     try:
         resp = my_glue_client.get_connection(
             Name=args['JDBC_CONNECTION_NAME'],
