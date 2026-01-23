@@ -74,7 +74,7 @@ def func_get_connection_properties(my_glue_client):
     except Exception as e:
         logger.error('Error: {0}'.format(e))
 
-def format_connection_details(my_connection_properties):
+def func_format_connection_properties(my_connection_properties):
     logger.info('Extracting connection credentials from DB connection.')
     try:
         jdbc_url = my_connection_properties['JDBC_CONNECTION_URL']
@@ -121,7 +121,7 @@ def func_truncate_all_tables(my_formatted_connection_creds, my_tables):
         
 glue_client = boto3.client('glue')
 db_connection_properties = func_get_connection_properties(glue_client)
-formatted_connection_creds = format_connection_details(db_connection_properties)
+formatted_connection_creds = func_format_connection_properties(db_connection_properties)
 
 # truncate all tables
 func_truncate_all_tables(formatted_connection_creds, db_tables)
