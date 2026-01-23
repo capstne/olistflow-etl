@@ -2,12 +2,12 @@ import boto3
 import sys
 import psycopg2
 
+from awsglue.context import GlueContext
+from awsglue.dynamicframe import DynamicFrame
+from awsglue.job import Job
 from awsglue.transforms import *
 from awsglue.utils import getResolvedOptions
-from awsglue.dynamicframe import DynamicFrame
 from pyspark.context import SparkContext
-from awsglue.context import GlueContext
-from awsglue.job import Job
 from pyspark.sql import functions as F
 from pyspark.sql.functions import col, to_date
 from urllib.parse import urlparse
