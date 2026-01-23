@@ -1,4 +1,7 @@
+import boto3
 import sys
+import psycopg2
+
 from awsglue.transforms import *
 from awsglue.utils import getResolvedOptions
 from awsglue.dynamicframe import DynamicFrame
@@ -7,7 +10,7 @@ from awsglue.context import GlueContext
 from awsglue.job import Job
 from pyspark.sql import functions as F
 from pyspark.sql.functions import col, to_date
-
+from urllib.parse import urlparse
 
 args = getResolvedOptions(sys.argv, [
     'JOB_NAME',
@@ -17,72 +20,88 @@ args = getResolvedOptions(sys.argv, [
 ])
 
 sc = SparkContext()
-glueContext = GlueContext(sc)
-spark = glueContext.spark_session
-job = Job(glueContext)
+glue_context = GlueContext(sc)
+job = Job(glue_context)
 job.init(args['JOB_NAME'], args)
 
-dim_customers = glueContext.create_dynamic_frame.from_catalog(
-    database=args['RAW_DB'],
-    table_name="olist_customers_dataset_csv"
-).toDF()
+def func_write_dynamic_frame(my_glue_context, my_dataframe, my_catalog_connection, my_destination_table):
+    my_glue_context.write_dynamic_frame.from_jdbc_conf(
+        frame=DynamicFrame.fromDF(my_dataframe, my_glue_context),
+        catalog_connection=my_catalog_connection,
+        connection_options={
+            "database": "postgres",
+            "dbtable": "olistflow.{}".format(my_destination_table)
+        }
+    )
+    
+def func_get_dataframe(my_glue_context, my_database, my_table):
+    return my_glue_context.create_dynamic_frame.from_catalog(
+        database=my_database,
+        table_name=my_table
+    ).toDF()
 
-glueContext.write_dynamic_frame.from_jdbc_conf(
-    frame=DynamicFrame.fromDF(dim_customers, glueContext, "df"),
-    catalog_connection=args['JDBC_CONNECTION_NAME'],
-    connection_options={
-        "database": "postgres",
-        "dbtable": "olistflow.dim_customers",
-        "preactions": "TRUNCATE TABLE olistflow.dim_customers;"
-    }
-)
+def func_get_connection_properties(my_glue_client):
+    resp = my_glue_client.get_connection(
+        Name=args["JDBC_CONNECTION_NAME"],
+        HidePassword=False
+    )
+    props = resp["Connection"]["ConnectionProperties"]
+    return props
 
-# dim_products = glueContext.create_dynamic_frame.from_catalog(
-#     database=args['RAW_DB'],
-#     table_name="olist_products_dataset_csv"
-# ).toDF()
+def func_truncate_all_tables(my_connection_properties):
+    jdbc_url = my_connection_properties["JDBC_CONNECTION_URL"]
+    user     = my_connection_properties.get("USERNAME")
+    password = my_connection_properties.get("PASSWORD") 
+    
+    parsed = urlparse(jdbc_url.replace("jdbc:", "", 1))
+    host = parsed.hostname
+    port = parsed.port
+    dbname = parsed.path.lstrip("/")  # "postgres"
+    
+    conn = psycopg2.connect(
+        host=host,
+        dbname=dbname,
+        user=user,
+        password=password,
+        port=port,
+    )
+    
+    conn.autocommit = True
+    
+    with conn.cursor() as cur:
+        cur.execute("""
+        TRUNCATE TABLE olistflow.fact_orders, 
+            olistflow.dim_sellers, 
+            olistflow.dim_products, 
+            olistflow.dim_customers 
+        RESTART IDENTITY;
+        """) 
+        
+glue_client = boto3.client("glue")
+db_connection_properties = func_get_connection_properties(glue_client)
 
-# glueContext.write_dynamic_frame.from_jdbc_conf(
-#     frame=DynamicFrame.fromDF(dim_products['product_id', 'product_category_name'], glueContext, "df"),
-#     catalog_connection=args['JDBC_CONNECTION_NAME'],
-#     connection_options={
-#         "database": "postgres",
-#         "dbtable": "olistflow.dim_products",
-#         "preactions": "TRUNCATE TABLE olistflow.dim_products;"
-#     }
-# )
+# truncate all tables
+func_truncate_all_tables(db_connection_properties)
 
-# dim_sellers = glueContext.create_dynamic_frame.from_catalog(
-#     database=args['RAW_DB'],
-#     table_name="olist_sellers_dataset_csv"
-# ).toDF()
+# load all dimensions tables first
+dim_customers = func_get_dataframe(glue_context, args['RAW_DB'], 'olist_customers_dataset_csv')
+dim_customers = dim_customers \
+  .withColumnRenamed("customer_zip_code_prefix","zip_code_prefix") \
+  .withColumnRenamed("customer_city","city") \
+  .withColumnRenamed("customer_state","state")
+func_write_dynamic_frame(glue_context, dim_customers, args['JDBC_CONNECTION_NAME'], 'dim_customers')
 
-# glueContext.write_dynamic_frame.from_jdbc_conf(
-#     frame=DynamicFrame.fromDF(dim_sellers, glueContext, "df"),
-#     catalog_connection=args['JDBC_CONNECTION_NAME'],
-#     connection_options={
-#         "database": "postgres",
-#         "dbtable": "olistflow.dim_sellers",
-#         "preactions": "TRUNCATE TABLE olistflow.dim_sellers;"
-#     }
-# )
+dim_products = func_get_dataframe(glue_context, args['RAW_DB'], 'olist_products_dataset_csv')
+dim_products = dim_products['product_id', 'product_category_name']
+func_write_dynamic_frame(glue_context, dim_products, args['JDBC_CONNECTION_NAME'], 'dim_products')
 
-# curated_orders = glueContext.create_dynamic_frame.from_catalog(
-#     database=args['CURATED_DB'],
-#     table_name="orders"
-# ).toDF()
+dim_sellers = func_get_dataframe(glue_context, args['RAW_DB'], 'olist_sellers_dataset_csv')
+func_write_dynamic_frame(glue_context, dim_sellers, args['JDBC_CONNECTION_NAME'], 'dim_sellers')
 
-# # fix: order_date is being sent as a string for some reason
-# curated_orders = curated_orders.withColumn("order_date", to_date(col("order_date"), "yyyy-MM-dd")) 
+# then load the fact table
+curated_orders = func_get_dataframe(glue_context, args['CURATED_DB'], 'orders')
+curated_orders = curated_orders.withColumn("order_date", to_date(col("order_date"), "yyyy-MM-dd")) 
 
-# glueContext.write_dynamic_frame.from_jdbc_conf(
-#     frame=DynamicFrame.fromDF(curated_orders, glueContext, "df"),
-#     catalog_connection=args['JDBC_CONNECTION_NAME'],
-#     connection_options={
-#         "database": "postgres",
-#         "dbtable": "olistflow.fact_orders",
-#         "preactions": "TRUNCATE TABLE olistflow.fact_orders;"
-#     }
-# )
+func_write_dynamic_frame(glue_context, curated_orders, args['JDBC_CONNECTION_NAME'], 'fact_orders')
 
 job.commit()

@@ -101,5 +101,6 @@ resource "aws_glue_job" "curated_to_rds" {
     "--JDBC_CONNECTION_NAME"             = aws_glue_connection.rds.name
     "--enable-metrics"                   = ""
     "--enable-continuous-cloudwatch-log" = "true"
+    "--additional-python-modules"        = "psycopg2-binary==2.9.11,boto3==1.42.33"
   }
 }
