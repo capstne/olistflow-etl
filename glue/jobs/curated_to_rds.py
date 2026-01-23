@@ -28,60 +28,85 @@ db_tables = {
 
 sc = SparkContext()
 glue_context = GlueContext(sc)
+logger = glue_context.get_logger()
+
 job = Job(glue_context)
 job.init(args['JOB_NAME'], args)
 
 def func_write_dynamic_frame(my_glue_context, my_dataframe, my_catalog_connection, my_destination_table):
-    my_glue_context.write_dynamic_frame.from_jdbc_conf(
-        frame=DynamicFrame.fromDF(my_dataframe, my_glue_context),
-        catalog_connection=my_catalog_connection,
-        connection_options={
-            "database": "postgres",
-            "dbtable": "olistflow.{}".format(my_destination_table)
-        }
-    )
+    dbtable = 'olistflow.{}'.format(my_destination_table)
+    try:
+        logger.info('Creating a DynamicFrame from DataFrame ({0}).'.format(my_dataframe))
+        my_dynamic_frame  = DynamicFrame.fromDF(my_dataframe, my_glue_context)
+
+        logger.info('Writing Dynamic Frame ({0}) into dbtable ({1})'.format(my_dynamic_frame, dbtable))
+        my_glue_context.write_dynamic_frame.from_jdbc_conf(
+            frame=my_dynamic_frame,
+            catalog_connection=my_catalog_connection,
+            connection_options={
+                'database': 'postgres',
+                'dbtable': dbtable
+            }
+        )
+    except Exception as e:
+        logger.error('Error: {0}'.format(e))
+
     
 def func_get_dataframe(my_glue_context, my_database, my_table):
-    return my_glue_context.create_dynamic_frame.from_catalog(
-        database=my_database,
-        table_name=my_table
-    ).toDF()
+    logger.info('Creating a DataFrame from GlueTable ({0}) in Database ({1}).'.format(my_table, my_database))
+    try:
+        return my_glue_context.create_dynamic_frame.from_catalog(
+            database=my_database,
+            table_name=my_table
+        ).toDF()
+    except Exception as e:
+        logger.error('Error: {0}'.format(e))
 
 def func_get_connection_properties(my_glue_client):
-    resp = my_glue_client.get_connection(
-        Name=args["JDBC_CONNECTION_NAME"],
-        HidePassword=False
-    )
-    props = resp["Connection"]["ConnectionProperties"]
-    return props
+    logger.info('Retrieving a DB Connection properties.')
+    try:
+        resp = my_glue_client.get_connection(
+            Name=args['JDBC_CONNECTION_NAME'],
+            HidePassword=False
+        )
+        props = resp['Connection']['ConnectionProperties']
+        return props
+    except Exception as e:
+        logger.error('Error: {0}'.format(e))
 
 def func_truncate_all_tables(my_connection_properties, my_tables):
-    jdbc_url = my_connection_properties["JDBC_CONNECTION_URL"]
-    user     = my_connection_properties.get("USERNAME")
-    password = my_connection_properties.get("PASSWORD") 
+    logger.info('Starting truncate_all_tables function')
+
+    jdbc_url = my_connection_properties['JDBC_CONNECTION_URL']
+    user     = my_connection_properties.get('USERNAME')
+    password = my_connection_properties.get('PASSWORD') 
     
-    parsed = urlparse(jdbc_url.replace("jdbc:", "", 1))
+    parsed = urlparse(jdbc_url.replace('jdbc:', '', 1))
     host = parsed.hostname
     port = parsed.port
-    dbname = parsed.path.lstrip("/")  # "postgres"
+    dbname = parsed.path.lstrip('/')  # 'postgres'
     
-    conn = psycopg2.connect(
-        host=host,
-        dbname=dbname,
-        user=user,
-        password=password,
-        port=port,
-    )
-    
-    conn.autocommit = True
-    
-    sql_statement = """ TRUNCATE TABLE olistflow.{0}, olistflow.{1}, olistflow.{2}, olistflow.{3} RESTART IDENTITY;
-        """.format(my_tables['orders'], my_tables['sellers'], my_tables['products'], my_tables['customers'])
-    
-    with conn.cursor() as cur:
-        cur.execute(sql_statement) 
+    logger.info('Connecting to DB...')
+    try:
+        conn = psycopg2.connect(
+            host=host,
+            dbname=dbname,
+            user=user,
+            password=password,
+            port=port,
+        )
         
-glue_client = boto3.client("glue")
+        conn.autocommit = True
+        
+        sql_statement = """ TRUNCATE TABLE olistflow.{0}, olistflow.{1}, olistflow.{2}, olistflow.{3} RESTART IDENTITY;
+            """.format(my_tables['orders'], my_tables['sellers'], my_tables['products'], my_tables['customers'])
+        
+        with conn.cursor() as cur:
+            cur.execute(sql_statement) 
+    except Exception as e:
+        logger.error('Error: {0}'.format(e))
+        
+glue_client = boto3.client('glue')
 db_connection_properties = func_get_connection_properties(glue_client)
 
 # truncate all tables
@@ -90,9 +115,9 @@ func_truncate_all_tables(db_connection_properties, db_tables)
 # load all dimensions tables first
 dim_customers = func_get_dataframe(glue_context, args['RAW_DB'], 'olist_customers_dataset_csv')
 dim_customers = dim_customers \
-  .withColumnRenamed("customer_zip_code_prefix","zip_code_prefix") \
-  .withColumnRenamed("customer_city","city") \
-  .withColumnRenamed("customer_state","state")
+  .withColumnRenamed('customer_zip_code_prefix','zip_code_prefix') \
+  .withColumnRenamed('customer_city','city') \
+  .withColumnRenamed('customer_state','state')
 func_write_dynamic_frame(glue_context, dim_customers, args['JDBC_CONNECTION_NAME'], db_tables['customers'])
 
 dim_products = func_get_dataframe(glue_context, args['RAW_DB'], 'olist_products_dataset_csv')
@@ -104,7 +129,7 @@ func_write_dynamic_frame(glue_context, dim_sellers, args['JDBC_CONNECTION_NAME']
 
 # then load the fact table
 curated_orders = func_get_dataframe(glue_context, args['CURATED_DB'], 'orders')
-curated_orders = curated_orders.withColumn("order_date", to_date(col("order_date"), "yyyy-MM-dd")) 
+curated_orders = curated_orders.withColumn('order_date', to_date(col('order_date'), 'yyyy-MM-dd')) 
 
 func_write_dynamic_frame(glue_context, curated_orders, args['JDBC_CONNECTION_NAME'], db_tables['orders'])
 
