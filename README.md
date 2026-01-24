@@ -96,6 +96,7 @@ aws stepfunctions start-execution --state-machine-arn arn:aws:states:us-east-1:{
 │       ├── curated_to_rds.py
 │       └── raw_to_curated.py
 ├── infra                                           # 🏗️ Terraform IaC
+│   ├── alerts.tf
 │   ├── backend.tf
 │   ├── bastion.tf
 │   ├── glue.tf
