@@ -22,6 +22,7 @@ Glue curated_to_rds.py
 **Key Components**:
 - **Networking**: Private VPC + NAT Gateway + S3 VPC Endpoint + Glue/RDS Security Groups
 - **Data Catalog**: Glue databases `olistflow_etl_raw` / `olistflow_etl_curated`
+- **Step Function**: State Machine orchestrator `olistflow-etl-dev-orchestrator` 
 - **IAM**: Least-privilege roles + OIDC GitHub Actions provider
 
 ## ✅ Major Achievements
@@ -32,11 +33,13 @@ Glue curated_to_rds.py
 * ✅ RDS PostgreSQL (private, Multi-AZ ready)
 * ✅ Glue 4.0 Jobs + Databases + JDBC Connections
 * ✅ Lake Formation disabled (IAM_ALLOWED_PRINCIPALS Super)
-​
+* ✅ EC2 Instance for providing secure access to RDS database
+* ✅ Windows script that installs pg admin 4 on EC2 and moves init.sql, postgres server template scripts into instance 
+
 ### ETL Implementation
 
 * ✅ raw_to_curated.py: DynamicFrame joins/filters → Parquet
-* ✅ curated_to_rds.py: JDBC write fact_orders (TRUNCATE preactions)
+* ✅ curated_to_rds.py: JDBC write fact_orders, dim_product, dim_sellers, dim_customers (TRUNCATE preactions)
 * ✅ Spark catalog fixes: glueContext.create_dynamic_frame.from_catalog()
 ​
 
@@ -47,23 +50,30 @@ Glue curated_to_rds.py
 
 ## 🚀 Quick Start
 
+This assumes you have installed [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), [git](https://git-scm.com/install/), [terraform CLI](https://developer.hashicorp.com/terraform/install) and [authenticated your computer with AWS.](https://docs.aws.amazon.com/cli/v1/userguide/cli-chap-authentication.html)
+
 ```bash
 1. Clone & Setup
 git clone https://github.com/capstne/olistflow-etl
 cd olistflow-etl/infra
 
 2. Initialize (dev environment)
-terraform init -backend-config=envs/dev/s3-backend.tfvars
+terraform init 
 
 3. Deploy full stack
-terraform apply -var-file=envs/dev/terraform.tfvars
+terraform apply 
 
 4. Upload Olist CSVs to raw bucket
 aws s3 cp olist_dataset/ s3://olistflow-etl-dev-raw/olist/
 
-5. Run ETL (manual or future Step Functions)
+5. Run ETL 
 aws glue start-job-run --job-name olistflow-etl-dev-raw-to-curated
 aws glue start-job-run --job-name olistflow-etl-dev-curated-to-rds
+
+6. or run Step Function
+# replace state machine arn with current value
+aws stepfunctions start-execution --state-machine-arn arn:aws:states:us-east-1:{account}:stateMachine:olistflow-etl-dev-orchestrator 
+
 ```
 
 📁 Repository Structure
@@ -118,7 +128,7 @@ aws glue start-job-run --job-name olistflow-etl-dev-curated-to-rds
 ```bash
 | Category   | Technologies                                          |
 | ---------- | ----------------------------------------------------- |
-| IaC        | Terraform, GitHub Actions OIDC                        |
+| IaC        | Terraform, EC2, GitHub Actions OIDC                        |
 | Data       | S3, Glue Data Catalog, Parquet, PostgreSQL            |
 | ETL        | AWS Glue 4.0 PySpark, DynamicFrames, JDBC             |
 | Networking | VPC, NAT Gateway, Security Groups, VPC Endpoints      |
@@ -136,10 +146,6 @@ aws glue start-job-run --job-name olistflow-etl-dev-curated-to-rds
 * JDBC Writes: from_jdbc_conf + explicit connectionName > connection_options
 
 🔮 Next Steps
-* Step Functions orchestrator (olistflow-etl-orchestrator-dev)
-
-* Glue Crawlers for schema evolution
-
 * QuickSight dashboards (revenue/customer analytics)
 
 * Cost monitoring + prod environment tfvars
