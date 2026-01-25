@@ -34,7 +34,7 @@ def func_load_df_from_catalog(my_glue_context, my_db, my_table):
         logger.error('Error: {0}'.format(e))
 
 
-# Load via GlueContext
+# load via GlueContext
 raw_orders_df = func_load_df_from_catalog(glue_context, args['RAW_DB'], 'olist_orders_dataset_csv')
 raw_customers_df = func_load_df_from_catalog(glue_context, args['RAW_DB'], 'olist_customers_dataset_csv')
 raw_items_df = func_load_df_from_catalog(glue_context, args['RAW_DB'], 'olist_order_items_dataset_csv')
