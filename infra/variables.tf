@@ -47,3 +47,8 @@ variable "sql_scripts_prefix" {
   type    = string
   default = "scripts/sql/"
 }
+
+variable "alert_email" {
+  type    = string
+  default = "temi.oluseun@gmail.com"
+}

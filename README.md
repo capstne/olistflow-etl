@@ -35,6 +35,7 @@ Glue curated_to_rds.py
 * ✅ Lake Formation disabled (IAM_ALLOWED_PRINCIPALS Super)
 * ✅ EC2 Instance for providing secure access to RDS database
 * ✅ Windows script that installs pg admin 4 on EC2 and moves init.sql, postgres server template scripts into instance 
+* ✅ Monitoring and email alerts for failed Glue jobs. 
 
 ### ETL Implementation
 
@@ -95,6 +96,7 @@ aws stepfunctions start-execution --state-machine-arn arn:aws:states:us-east-1:{
 │       ├── curated_to_rds.py
 │       └── raw_to_curated.py
 ├── infra                                           # 🏗️ Terraform IaC
+│   ├── alerts.tf
 │   ├── backend.tf
 │   ├── bastion.tf
 │   ├── glue.tf
