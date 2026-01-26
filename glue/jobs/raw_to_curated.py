@@ -32,6 +32,7 @@ def func_load_df_from_catalog(my_glue_context, my_db, my_table):
         ).toDF()
     except Exception as e:
         logger.error('Error: {0}'.format(e))
+        raise
 
 
 # load via GlueContext
