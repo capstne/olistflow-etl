@@ -101,14 +101,7 @@ def func_truncate_all_tables(my_formatted_connection_creds, my_tables):
     logger.info('Starting truncate_all_tables function.')
     logger.info('Connecting to DB...')
     try:
-        conn = psycopg2.connect(
-            host=my_formatted_connection_creds['host'],
-            dbname=my_formatted_connection_creds['dbname'],
-            user=my_formatted_connection_creds['user'],
-            password=my_formatted_connection_creds['password'],
-            port=my_formatted_connection_creds['port'],
-        )
-        
+        conn = psycopg2.connect(my_formatted_connection_creds)       
         conn.autocommit = True
         
         sql_statement = ''' TRUNCATE TABLE olistflow.{0}, olistflow.{1}, olistflow.{2}, olistflow.{3} RESTART IDENTITY;
