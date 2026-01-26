@@ -36,11 +36,25 @@
 #   ]
 # }
 
+data "aws_caller_identity" "current" {}
+
+data "aws_lakeformation_data_lake_settings" "current" {
+  catalog_id = data.aws_caller_identity.current.account_id
+}
+
+locals {
+  lf_admins = distinct(concat(
+    data.aws_lakeformation_data_lake_settings.current.admins,
+    [aws_iam_role.glue_role.arn]
+  ))
+}
+
 resource "aws_lakeformation_data_lake_settings" "this" {
-  admins = [aws_iam_role.glue_role.arn]
+  catalog_id = data.aws_caller_identity.current.account_id
+  admins     = local.lf_admins
 
   create_database_default_permissions {}
-  create_table_default_permissions {}
+  create_table_default_permissions  {}
 
-  depends_on = [aws_iam_role.glue_role]
+  trusted_resource_owners = data.aws_lakeformation_data_lake_settings.current.trusted_resource_owners
 }
