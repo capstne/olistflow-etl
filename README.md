@@ -1,4 +1,4 @@
-# OlistFlow ETL - Project README
+# OlistFlow ETL
 
 OlistFlow ETL processes the Brazilian Olist e-commerce dataset through a complete AWS serverless pipeline. The project transforms raw CSV files into curated Parquet tables and loads them into PostgreSQL for analytics reporting.
 
