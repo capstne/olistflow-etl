@@ -97,7 +97,7 @@ curated_orders_p_df = curated_orders.toPandas()
 
 wr.s3.to_parquet(
     df=curated_orders_p_df,
-    path=f's3://{0}/{1}orders/'.format(args['CURATED_BUCKET'], args['CURATED_PREFIX']),
+    path='s3://{0}/{1}orders/'.format(args['CURATED_BUCKET'], args['CURATED_PREFIX']),
     dataset=True,
     database=args['CURATED_DB'],
     table='orders',
