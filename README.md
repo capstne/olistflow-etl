@@ -1,8 +1,8 @@
-# OlistFlow ETL - Project README
+# OlistFlow ETL
 
 OlistFlow ETL processes the Brazilian Olist e-commerce dataset through a complete AWS serverless pipeline. The project transforms raw CSV files into curated Parquet tables and loads them into PostgreSQL for analytics reporting.
 
-## 🎯 Project Overview
+## Project Overview
 **OlistFlow ETL** demonstrates production-grade data engineering practices:
 
 - **Infrastructure**: Terraform-provisioned VPC, S3 data lake (raw/curated), RDS PostgreSQL, AWS Glue 4.0 jobs
@@ -10,7 +10,7 @@ OlistFlow ETL processes the Brazilian Olist e-commerce dataset through a complet
 - **CI/CD**: GitHub Actions OIDC workflows for PR plan/main apply
 - **Repo**: [github.com/capstne/olistflow-etl](https://github.com/capstne/olistflow-etl)
 
-## 🏗️ Architecture
+## Architecture
 ```bash
 Raw CSVs (Olist Kaggle) 
     ↓ S3 olistflow-etl-dev-raw
@@ -49,7 +49,7 @@ Glue curated_to_rds.py
 - **Fixed**: JDBC "connection attempt failed" → VPC subnet/SG alignment
 - **Fixed**: `url` key error → from_jdbc_conf with explicit connectionName
 
-## 🚀 Quick Start
+## Quick Start
 
 This assumes you have installed [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), [git](https://git-scm.com/install/), [terraform CLI](https://developer.hashicorp.com/terraform/install) and [authenticated your computer with AWS.](https://docs.aws.amazon.com/cli/v1/userguide/cli-chap-authentication.html)
 
@@ -77,7 +77,7 @@ aws stepfunctions start-execution --state-machine-arn arn:aws:states:us-east-1:{
 
 ```
 
-📁 Repository Structure
+## Repository Structure
 
 ```bash
 .
@@ -125,7 +125,7 @@ aws stepfunctions start-execution --state-machine-arn arn:aws:states:us-east-1:{
     └── servers.json.tmpl
 ```
 
-🛠️ Technologies
+## Technologies
 
 ```bash
 | Category   | Technologies                                          |
@@ -138,7 +138,7 @@ aws stepfunctions start-execution --state-machine-arn arn:aws:states:us-east-1:{
 
 ```
 
-🎉 Key Learnings
+## Key Learnings
 * Glue Networking: Jobs must match RDS VPC/subnet/SG exactly
 
 * Lake Formation: IAM_ALLOWED_PRINCIPALS Super = IAM-only mode
@@ -147,14 +147,14 @@ aws stepfunctions start-execution --state-machine-arn arn:aws:states:us-east-1:{
 
 * JDBC Writes: from_jdbc_conf + explicit connectionName > connection_options
 
-🔮 Next Steps
+## Next Steps
 * QuickSight dashboards (revenue/customer analytics)
 
 * Cost monitoring + prod environment tfvars
 
 * Data quality tests (Great Expectations)
 
- 📈 Business Value
+## Business Value
 * Transforms 100K+ Olist orders into star schema for:
 
 * Revenue analysis by seller/period
@@ -165,5 +165,5 @@ aws stepfunctions start-execution --state-machine-arn arn:aws:states:us-east-1:{
 
 * Product performance ranking
 
-⭐ Built for portfolio showcase - Complete data platform from raw ingest to analytics-ready mart.
+Built for portfolio showcase - Complete data platform from raw ingest to analytics-ready mart.
 

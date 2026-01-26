@@ -111,8 +111,8 @@ def func_truncate_all_tables(my_formatted_connection_creds, my_tables):
         
         conn.autocommit = True
         
-        sql_statement = """ TRUNCATE TABLE olistflow.{0}, olistflow.{1}, olistflow.{2}, olistflow.{3} RESTART IDENTITY;
-            """.format(my_tables['orders'], my_tables['sellers'], my_tables['products'], my_tables['customers'])
+        sql_statement = ''' TRUNCATE TABLE olistflow.{0}, olistflow.{1}, olistflow.{2}, olistflow.{3} RESTART IDENTITY;
+            '''.format(my_tables['orders'], my_tables['sellers'], my_tables['products'], my_tables['customers'])
         
         with conn.cursor() as cur:
             cur.execute(sql_statement) 
