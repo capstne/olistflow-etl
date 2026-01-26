@@ -10,7 +10,7 @@ resource "aws_glue_connection" "rds" {
 
   physical_connection_requirements {
     availability_zone      = data.aws_availability_zones.available.names[0]
-    security_group_id_list = [aws_security_group.rds.id]
+    security_group_id_list = [aws_security_group.rds.id, aws_security_group.glue.id]
     subnet_id              = aws_subnet.private[0].id
   }
 }
