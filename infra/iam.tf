@@ -142,7 +142,21 @@ data "aws_iam_policy_document" "sfn_policy" {
       "glue:StartJobRun",
       "glue:GetJobRun",
       "glue:GetJobRuns",
-      "glue:GetJob"
+      "glue:GetJob",
+      "glue:GetDatabase",
+      "glue:GetDatabases",
+      "glue:GetTable",
+      "glue:GetTables",
+      "glue:GetPartition",
+      "glue:GetPartitions",
+      "glue:CreateDatabase",
+      "glue:CreateTable",
+      "glue:UpdateTable",
+      "glue:BatchCreatePartition",
+      "glue:BatchUpdatePartition",
+      "glue:BatchDeletePartition",
+      "glue:GetConnection",
+      "glue:GetCrawler"
     ]
     resources = [
       aws_glue_job.raw_to_curated.arn,
