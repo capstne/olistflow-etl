@@ -1,10 +1,5 @@
 # bastion.tf - Minimal Windows Bastion EC2 for RDS access 
 
-data "aws_secretsmanager_secret_version" "ec2_password" {
-  secret_id  = aws_secretsmanager_secret.ec2_password.name
-  depends_on = [aws_secretsmanager_secret_version.ec2_password_version]
-}
-
 resource "aws_security_group" "bastion" {
   name_prefix = "bastion-windows-"
   vpc_id      = aws_vpc.main.id
@@ -58,9 +53,7 @@ resource "aws_instance" "bastion" {
     volume_type = "gp3"
   }
 
-  user_data = templatefile("../scripts/windows/windows-userdata.ps1", {
-    admin_password = data.aws_secretsmanager_secret_version.ec2_password.secret_string
-  })
+  user_data = templatefile("../scripts/windows/windows-userdata.ps1")
 
   tags = {
     Name = "windows-bastion-rds"

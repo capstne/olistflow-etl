@@ -17,24 +17,6 @@ resource "aws_secretsmanager_secret_version" "rds_password_version" {
   secret_string = random_password.rds_password.result
 }
 
-resource "random_password" "ec2_admin_password" {
-  length           = 16
-  special          = true
-  override_special = "!#$%&*()-_=+[]{}<>:?" # note: no @, no space, no slash, no quote
-}
-
-resource "aws_secretsmanager_secret" "ec2_password" {
-  name                    = "${local.name}-ec2-master-password"
-  description             = "Master password for olist-etl EC2 instance"
-  recovery_window_in_days = 0
-
-}
-
-resource "aws_secretsmanager_secret_version" "ec2_password_version" {
-  secret_id     = aws_secretsmanager_secret.ec2_password.id
-  secret_string = random_password.ec2_admin_password.result
-}
-
 resource "aws_secretsmanager_secret" "bastion_keypair" {
   name        = "${local.name}-bastion-keypair"
   description = "SSH key pair for bastion host (private + public)"
