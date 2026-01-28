@@ -53,7 +53,7 @@ resource "aws_instance" "bastion" {
     volume_type = "gp3"
   }
 
-  user_data = templatefile("../scripts/windows/windows-userdata.ps1")
+  user_data = file("../scripts/windows/windows-userdata.ps1")
 
   tags = {
     Name = "windows-bastion-rds"
