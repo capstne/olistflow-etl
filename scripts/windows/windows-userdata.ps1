@@ -1,15 +1,14 @@
 # Run as System on startup
 <powershell>
 $ErrorActionPreference = 'Stop'
-
 $serversJson = 'C:\pgadmin\servers.json'
 
-# Log everything
-$LogDir = 'C:\ProgramData\userdata'
-New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
-Start-Transcript -Path '$LogDir\userdata.log' -Append
-
 try {
+    # Log everything
+    $LogDir = 'C:\ProgramData\userdata'
+    New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
+    Start-Transcript -Path '$LogDir\userdata.log' -Append
+
     # Ensure folders exist
     New-Item -ItemType Directory -Path 'C:\pgadmin\scripts\sql' -Force | Out-Null
 
@@ -50,7 +49,7 @@ try {
     & $pythonExe $setupPy setup-db 
 
     # Import server
-    & $pythonExe $setupPy load-servers $serversJson --sqlite-path $sqlitePath --replace	
+    & $pythonExe $setupPy load-servers $serversJson
 
     'Success: $(Get-Date -Format o)' | Out-File '$LogDir\status.txt' -Append
 }
