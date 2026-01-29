@@ -64,14 +64,11 @@ terraform init
 3. Deploy full stack
 terraform apply 
 
-4. Upload Olist CSVs to raw bucket
-aws s3 cp olist_dataset/ s3://olistflow-etl-dev-raw/olist/
-
-5. Run ETL 
+4. Run ETL 
 aws glue start-job-run --job-name olistflow-etl-dev-raw-to-curated
 aws glue start-job-run --job-name olistflow-etl-dev-curated-to-rds
 
-6. or run Step Function
+5. or run Step Function
 # replace state machine arn with current value
 aws stepfunctions start-execution --state-machine-arn arn:aws:states:us-east-1:{account}:stateMachine:olistflow-etl-dev-orchestrator 
 
