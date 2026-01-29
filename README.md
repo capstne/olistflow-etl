@@ -76,6 +76,7 @@ aws glue start-job-run --job-name olistflow-etl-dev-curated-to-rds
 aws stepfunctions start-execution --state-machine-arn arn:aws:states:us-east-1:{account}:stateMachine:olistflow-etl-dev-orchestrator 
 
 ```
+You can then go to s3://olistflow-etl-dev-curated on your AWS console to view the fact table as a parquet file, or access the RDS DB instance - via pgadmin 4 on EC2 (already installed with server coonection creds automatically added using the startup script) - using the secrets 'olistflow-etl-dev-bastion-keypair' for getting [EC2 password using the private key](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) and 'olistflow-etl-dev-rds-master-password' for authenticating to the DB.
 
 ## Repository Structure
 
