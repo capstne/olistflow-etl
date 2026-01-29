@@ -17,6 +17,7 @@ jobs:
     - uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: 1.5.0
+        terraform_wrapper: true
 
     - name: Terraform Version
       run: terraform version
@@ -53,13 +54,19 @@ jobs:
       working-directory: ./infra
       
     - uses: actions/github-script@v7
+      env:
+        PLAN: ${{ steps.plan.outputs.stdout }}
+        PLAN_ERR: ${{ steps.plan.outputs.stderr }}
+        PLAN_EXIT: ${{ steps.plan.outputs.exitcode }}
       with:
         script: |
-          const planOutput = `${{ steps.plan.outputs.stdout }}`;
-          const output = `#### Terraform Plan 📖\n\`\`\`hcl\n${planOutput}\n\`\`\``;
+          const plan = (process.env.PLAN ?? '') + (process.env.PLAN_ERR ? `\n${process.env.PLAN_ERR}` : '');
+          const output = `#### Terraform Plan 📖 (exit ${process.env.PLAN_EXIT})\n\`\`\`hcl\n${plan}\n\`\`\``;
+
           await github.rest.issues.createComment({
             issue_number: context.issue.number,
-            owner: "${{ github.repository_owner }}",  // Fix empty owner
-            repo: "${{ github.event.repository.name }}",
+            owner: context.repo.owner,
+            repo: context.repo.repo,
             body: output
           });
+
