@@ -41,13 +41,16 @@ try {
 
     # Setup DB
     $pgRoot    = Join-Path $env:ProgramFiles 'pgAdmin 4'
+    $pgRuntime = Join-Path $pgRoot '\runtime'
     $pythonExe = Join-Path $pgRoot 'python\python.exe'
     $setupPy   = Join-Path $pgRoot 'web\setup.py'
 
-    & $pythonExe $setupPy setup-db
+    $env:PATH = "$pgRuntime;$pgRoot;$env:PATH"
+
+    & $pythonExe $setupPy setup-db 
 
     # Import server
-    & $pythonExe $setupPy load-servers $serversJson --sqlite-path $sqlitePath --replace
+    & $pythonExe $setupPy load-servers $serversJson --sqlite-path $sqlitePath --replace	
 
     'Success: $(Get-Date -Format o)' | Out-File '$LogDir\status.txt' -Append
 }
