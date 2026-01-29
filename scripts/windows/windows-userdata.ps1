@@ -1,13 +1,18 @@
-# Run as System on startup
 <powershell>
+# Run as System on startup
 $ErrorActionPreference = 'Stop'
+
 $serversJson = 'C:\pgadmin\servers.json'
 
+# Log paths
+$LogDir      = 'C:\ProgramData\userdata'
+$Transcript  = Join-Path $LogDir 'userdata.log'
+$StatusFile  = Join-Path $LogDir 'status.txt'
+
 try {
-    # Log everything
-    $LogDir = 'C:\ProgramData\userdata'
+    # Ensure log dir exists BEFORE transcript (Start-Transcript fails if dirs don't exist)
     New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
-    Start-Transcript -Path '$LogDir\userdata.log' -Append
+    Start-Transcript -Path $Transcript -Append
 
     # Ensure folders exist
     New-Item -ItemType Directory -Path 'C:\pgadmin\scripts\sql' -Force | Out-Null
@@ -31,30 +36,28 @@ try {
     }
     Import-Module AWSPowerShell
 
-    # Set default region explicitly (needed for AWS cmdlets to pick endpoints)
+    # Set default region explicitly
     Set-DefaultAWSRegion -Region 'us-east-1'
 
     # Download artifacts from S3
-    Read-S3Object -BucketName 'olistflow-etl-dev-artifacts' -Key 'pgadmin/servers.json'  -File $serversJson
-    Read-S3Object -BucketName 'olistflow-etl-dev-artifacts' -Key 'scripts/sql/init.sql' -File 'C:\pgadmin\scripts\sql\init.sql'
+    Read-S3Object -BucketName 'olistflow-etl-dev-artifacts' -Key 'pgadmin/servers.json'      -File $serversJson
+    Read-S3Object -BucketName 'olistflow-etl-dev-artifacts' -Key 'scripts/sql/init.sql'     -File 'C:\pgadmin\scripts\sql\init.sql'
 
     # Setup DB
     $pgRoot    = Join-Path $env:ProgramFiles 'pgAdmin 4'
-    $pgRuntime = Join-Path $pgRoot '\runtime'
+    $pgRuntime = Join-Path $pgRoot 'runtime'             # <-- no leading "\" (avoid wrong rooted path)
     $pythonExe = Join-Path $pgRoot 'python\python.exe'
     $setupPy   = Join-Path $pgRoot 'web\setup.py'
 
     $env:PATH = "$pgRuntime;$pgRoot;$env:PATH"
 
-    & $pythonExe $setupPy setup-db 
-
-    # Import server
+    & $pythonExe $setupPy setup-db
     & $pythonExe $setupPy load-servers $serversJson
 
-    'Success: $(Get-Date -Format o)' | Out-File '$LogDir\status.txt' -Append
+    "Success: $(Get-Date -Format o)" | Out-File $StatusFile -Append
 }
 catch {
-    'Failure: $(Get-Date -Format o)`r`n$($_ | Out-String)' | Out-File '$LogDir\status.txt' -Append
+    "Failure: $(Get-Date -Format o)`r`n$($_ | Out-String)" | Out-File $StatusFile -Append
     throw
 }
 finally {
