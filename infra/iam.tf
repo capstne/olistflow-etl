@@ -139,16 +139,16 @@ data "aws_iam_policy_document" "sfn_policy" {
   statement {
     sid = "GlueStartJobRun"
     actions = [
-				"glue:UpdateTable",
-				"glue:StartJobRun",
-				"glue:GetTables",
-				"glue:GetTable",
-				"glue:GetPartitions",
-				"glue:GetPartition",
-				"glue:GetJobRuns",
-				"glue:GetJobRun",
-				"glue:GetJob",
-				"glue:BatchStopJobRun"
+      "glue:UpdateTable",
+      "glue:StartJobRun",
+      "glue:GetTables",
+      "glue:GetTable",
+      "glue:GetPartitions",
+      "glue:GetPartition",
+      "glue:GetJobRuns",
+      "glue:GetJobRun",
+      "glue:GetJob",
+      "glue:BatchStopJobRun"
     ]
     resources = [
       aws_glue_job.raw_to_curated.arn,

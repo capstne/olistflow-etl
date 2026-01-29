@@ -1,19 +1,21 @@
 # Run as System on startup
 <powershell>
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
+
+$serversJson = 'C:\pgadmin\servers.json'
 
 # Log everything
-$LogDir = "C:\ProgramData\userdata"
+$LogDir = 'C:\ProgramData\userdata'
 New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
-Start-Transcript -Path "$LogDir\userdata.log" -Append
+Start-Transcript -Path '$LogDir\userdata.log' -Append
 
 try {
     # Ensure folders exist
-    New-Item -ItemType Directory -Path "C:\pgadmin\scripts\sql" -Force | Out-Null
+    New-Item -ItemType Directory -Path 'C:\pgadmin\scripts\sql' -Force | Out-Null
 
     # Enable RDP
-    Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
-    Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+    Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name 'fDenyTSConnections' -Value 0
+    Enable-NetFirewallRule -DisplayGroup 'Remote Desktop'
 
     # Install Chocolatey
     Set-ExecutionPolicy Bypass -Scope Process -Force
@@ -31,16 +33,26 @@ try {
     Import-Module AWSPowerShell
 
     # Set default region explicitly (needed for AWS cmdlets to pick endpoints)
-    Set-DefaultAWSRegion -Region "us-east-1"
+    Set-DefaultAWSRegion -Region 'us-east-1'
 
     # Download artifacts from S3
-    Read-S3Object -BucketName "olistflow-etl-dev-artifacts" -Key "pgadmin/servers.json"  -File "C:\pgadmin\servers.json"
-    Read-S3Object -BucketName "olistflow-etl-dev-artifacts" -Key "scripts/sql/init.sql" -File "C:\pgadmin\scripts\sql\init.sql"
+    Read-S3Object -BucketName 'olistflow-etl-dev-artifacts' -Key 'pgadmin/servers.json'  -File $serversJson
+    Read-S3Object -BucketName 'olistflow-etl-dev-artifacts' -Key 'scripts/sql/init.sql' -File 'C:\pgadmin\scripts\sql\init.sql'
 
-    "Success: $(Get-Date -Format o)" | Out-File "$LogDir\status.txt" -Append
+    # Setup DB
+    $pgRoot    = Join-Path $env:ProgramFiles 'pgAdmin 4'
+    $pythonExe = Join-Path $pgRoot 'python\python.exe'
+    $setupPy   = Join-Path $pgRoot 'web\setup.py'
+
+    & $pythonExe $setupPy setup-db
+
+    # Import server
+    & $pythonExe $setupPy load-servers $serversJson --sqlite-path $sqlitePath --replace
+
+    'Success: $(Get-Date -Format o)' | Out-File '$LogDir\status.txt' -Append
 }
 catch {
-    "Failure: $(Get-Date -Format o)`r`n$($_ | Out-String)" | Out-File "$LogDir\status.txt" -Append
+    'Failure: $(Get-Date -Format o)`r`n$($_ | Out-String)' | Out-File '$LogDir\status.txt' -Append
     throw
 }
 finally {
