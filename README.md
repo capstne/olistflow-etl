@@ -34,7 +34,7 @@ Glue curated_to_rds.py
 * ✅ Glue 4.0 Jobs + Databases + JDBC Connections
 * ✅ Lake Formation disabled (IAM_ALLOWED_PRINCIPALS Super)
 * ✅ EC2 Instance for providing secure access to RDS database
-* ✅ Windows script that installs pg admin 4 on EC2 and moves init.sql, postgres server template scripts into instance 
+* ✅ Windows script that installs pg admin 4 on EC2 and moves init.sql, postgres server template scripts into instance, saves the server connection details in pgAdmin 4 and executes init.sql - creating the relevant tables. 
 * ✅ Monitoring and email alerts for failed Glue jobs. 
 
 ### ETL Implementation
@@ -76,7 +76,9 @@ aws glue start-job-run --job-name olistflow-etl-dev-curated-to-rds
 aws stepfunctions start-execution --state-machine-arn arn:aws:states:us-east-1:{account}:stateMachine:olistflow-etl-dev-orchestrator 
 
 ```
-You can then go to s3://olistflow-etl-dev-curated on your AWS console to either view the fact table as a parquet file, or access the RDS DB instance - via pg admin 4 on EC2 - using the secrets 'olistflow-etl-dev-bastion-keypair' for getting [EC2 password using the private key](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) and 'olistflow-etl-dev-rds-master-password' for authenticating to the DB. pgAdmin 4 has already been installed along with relevant server connection creds using the provided powershell script (olistflow-etl/scripts/windows/windows-userdata.ps1).
+You can then go to s3://olistflow-etl-dev-curated on your AWS console to either view the fact table as a parquet file, or access the RDS DB instance - via pgAdmin 4 on EC2 - using the secrets **olistflow-etl-dev-bastion-keypair** for getting [EC2 password using the private key](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) and **olistflow-etl-dev-rds-master-password** for authenticating to the DB. 
+
+pgAdmin 4 has already been installed along with relevant server connection creds using the provided powershell script (olistflow-etl/scripts/windows/windows-userdata.ps1).
 
 ## Repository Structure
 
