@@ -5,8 +5,8 @@ locals {
     server_name    = "RDS Postgres"
     server_host    = aws_db_instance.main.address
     server_port    = aws_db_instance.main.port
-    maintenance_db = "postgres"
-    db_username    = "postgres"
+    maintenance_db = var.db_name
+    db_username    = var.db_username
     ssl_mode       = "require"
   })
 }

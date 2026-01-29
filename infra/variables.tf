@@ -52,3 +52,13 @@ variable "alert_email" {
   type    = string
   default = "temi.oluseun@gmail.com"
 }
+
+variable "db_username" {
+  type    = string
+  default = "postgres"
+}
+
+variable "db_name" {
+  type    = string
+  default = "postgres"
+}
