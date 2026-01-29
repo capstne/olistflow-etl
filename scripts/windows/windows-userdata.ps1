@@ -2,7 +2,15 @@
 # Run as System on startup
 $ErrorActionPreference = 'Stop'
 
+# Set db creds, postgres connection and init sql file paths as vars
+$dbHost     = '${db_host}'
+$dbPort     = '${db_port}'
+$dbName     = '${db_name}'
+$dbUsername = '${db_username}'
+$dbPassword = '${db_password}'
+
 $serversJson = 'C:\pgadmin\servers.json'
+$initSql     = 'C:\pgadmin\scripts\sql\init.sql'
 
 # Log paths
 $LogDir      = 'C:\ProgramData\userdata'
@@ -41,7 +49,7 @@ try {
 
     # Download artifacts from S3
     Read-S3Object -BucketName 'olistflow-etl-dev-artifacts' -Key 'pgadmin/servers.json' -File $serversJson
-    Read-S3Object -BucketName 'olistflow-etl-dev-artifacts' -Key 'scripts/sql/init.sql' -File 'C:\pgadmin\scripts\sql\init.sql'
+    Read-S3Object -BucketName 'olistflow-etl-dev-artifacts' -Key 'scripts/sql/init.sql' -File $initSql
 
     # Setup DB
     $pgRoot    = Join-Path $env:ProgramFiles 'pgAdmin 4'
@@ -55,6 +63,15 @@ try {
 
     # Load servers
     & $pythonExe $setupPy load-servers $serversJson
+
+    # Execute init script
+    $psqlExe = Join-Path $pgRoot 'runtime\psql.exe'
+    $env:PGPASSWORD = $dbPassword 
+
+    & $psqlExe -h $dbHost -p $dbPort -U $dbUsername -d $dbName -f $initSql --set ON_ERROR_STOP=on
+
+    # Remove db password when done
+    Remove-Item Env:\PGPASSWORD -ErrorAction SilentlyContinue
 
     "Success: $(Get-Date -Format o)" | Out-File $StatusFile -Append
 }

@@ -14,7 +14,7 @@ resource "aws_db_instance" "main" {
   storage_encrypted       = true
   db_subnet_group_name    = aws_db_subnet_group.main.name
   vpc_security_group_ids  = [aws_security_group.rds.id, aws_security_group.bastion.id]
-  username                = "postgres"
+  username                = var.db_username
   password                = data.aws_secretsmanager_secret_version.rds_password.secret_string
   skip_final_snapshot     = true
   backup_retention_period = 1
