@@ -62,13 +62,16 @@ cd olistflow-etl/infra
 terraform init 
 
 3. Deploy full stack
-terraform apply 
+terraform apply
 
-4. Run ETL 
+4. Start Crawler
+aws glue start-crawler --name olistflow-etl-dev-raw-crawler
+
+5. Run ETL 
 aws glue start-job-run --job-name olistflow-etl-dev-raw-to-curated
 aws glue start-job-run --job-name olistflow-etl-dev-curated-to-rds
 
-5. or run Step Function
+6. or run Step Function
 # replace state machine arn with current value
 aws stepfunctions start-execution --state-machine-arn arn:aws:states:us-east-1:{account}:stateMachine:olistflow-etl-dev-orchestrator 
 
