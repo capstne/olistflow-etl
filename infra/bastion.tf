@@ -62,6 +62,8 @@ resource "aws_instance" "bastion" {
   lifecycle {
     ignore_changes = [ami] # Windows AMIs update often
   }
+
+  depends_on = [aws_db_instance.main, aws_s3_object.add_glue_jobs_files, aws_s3_object.add_pgadmin_servers_connection_details, aws_s3_object.add_sql_script]
 }
 
 data "aws_ami" "windows" {
